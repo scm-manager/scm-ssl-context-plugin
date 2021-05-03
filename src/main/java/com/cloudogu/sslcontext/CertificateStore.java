@@ -21,30 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.cloudogu.sslcontext;
 
-import { binder } from "@scm-manager/ui-extensions";
-import { Link, Links } from "@scm-manager/ui-types";
-import React, { FC } from "react";
-import { Route } from "react-router-dom";
-import SSLContextOverview from "./SSLContextOverview";
-import SSLContextNavigation from "./SSLContextNavigation";
+import com.google.common.hash.Hashing;
+import sonia.scm.store.DataStore;
+import sonia.scm.store.DataStoreFactory;
 
-type PredicateProps = {
-  links: Links;
-};
+import javax.inject.Inject;
+import java.util.Map;
 
-export const predicate = ({ links }: PredicateProps) => {
-  return !!(links && links.sslContext);
-};
+public class CertificateStore {
 
-const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
-  return (
-    <Route path="/admin/ssl-context">
-      <SSLContextOverview link={(links.sslContext as Link).href} />
-    </Route>
-  );
-};
+  private static final String STORE_NAME = "X509_certificates";
 
-binder.bind("admin.route", SSLContextRoute, predicate);
+  private final DataStore<Certificate> store;
 
-binder.bind("admin.navigation", SSLContextNavigation, predicate);
+  @Inject
+  public CertificateStore(DataStoreFactory dataStoreFactory) {
+    this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();;
+  }
+
+  public Map<String, Certificate> getAll() {
+    return store.getAll();
+  }
+
+  public void put(Certificate certificate) {
+    String fingerprint = Hashing.sha1().hashBytes(certificate.getCertificate()).toString();
+    Map<String, Certificate> allCerts = getAll();
+    certificate.setFingerprint(fingerprint);
+
+    if (!allCerts.containsKey(fingerprint)) {
+      store.put(fingerprint, certificate);
+    }
+  }
+}

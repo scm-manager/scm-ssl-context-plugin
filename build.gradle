@@ -28,9 +28,8 @@ plugins {
 }
 
 dependencies {
-  // define dependencies to other plugins here e.g.:
-  // plugin "sonia.scm.plugins:scm-mail-plugin:2.1.0"
-  // optionalPlugin "sonia.scm.plugins:scm-editor-plugin:2.0.0"
+  testImplementation 'org.bouncycastle:bcprov-jdk15on:1.54'
+  testImplementation 'com.github.sdorra:junit-shiro-extension:1.0.1'
 }
 
 scmPlugin {
@@ -38,8 +37,8 @@ scmPlugin {
   displayName = "SSL Context Plugin"
   description = "Provides information about SSL connections like rejected certificates"
 
-  // author = "Your name"
-  // category = "Workflow"
+   author = "Eduard Heimbuch"
+   category = "Administration"
 
   openapi {
     packages = [

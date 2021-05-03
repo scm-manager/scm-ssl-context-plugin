@@ -21,30 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.cloudogu.sslcontext;
 
-import { binder } from "@scm-manager/ui-extensions";
-import { Link, Links } from "@scm-manager/ui-types";
-import React, { FC } from "react";
-import { Route } from "react-router-dom";
-import SSLContextOverview from "./SSLContextOverview";
-import SSLContextNavigation from "./SSLContextNavigation";
+import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
+import org.mapstruct.factory.Mappers;
+import sonia.scm.plugin.Extension;
 
-type PredicateProps = {
-  links: Links;
-};
+import javax.inject.Singleton;
+import javax.net.ssl.SSLContext;
 
-export const predicate = ({ links }: PredicateProps) => {
-  return !!(links && links.sslContext);
-};
+@Extension
+public class SSLContextModule extends AbstractModule {
 
-const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
-  return (
-    <Route path="/admin/ssl-context">
-      <SSLContextOverview link={(links.sslContext as Link).href} />
-    </Route>
-  );
-};
-
-binder.bind("admin.route", SSLContextRoute, predicate);
-
-binder.bind("admin.navigation", SSLContextNavigation, predicate);
+  @Override
+  protected void configure() {
+    bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
+    bind(SSLContext.class).annotatedWith(Names.named("Default")).toProvider(SSLContextProvider.class).in(Singleton.class);
+  }
+}

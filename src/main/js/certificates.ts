@@ -21,10 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.cloudogu.sslcontext;
 
-import static org.junit.jupiter.api.Assertions.*;
+type CertificateError =
+  | "CERTIFICATE_UNKNOWN"
+  | "CERTIFICATE_EXPIRED"
+  | "CERTIFICATE_NOT_YET_VALID"
+  | "CERTIFICATE_REVOKED";
 
-class SampleResourceTest {
+type CertificateStatus = "REJECTED" | "APPROVED";
 
-}
+export type Certificate = {
+  certificateError: CertificateError;
+  fingerprint: string;
+  issuerDN: string;
+  notAfter: Date;
+  notBefore: Date;
+  signAlg: string;
+  status: CertificateStatus;
+  subjectDN: string;
+  timestamp: Date;
+};

@@ -21,21 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.cloudogu.sslcontext;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import de.otto.edison.hal.HalRepresentation;
+import de.otto.edison.hal.Links;
+import lombok.Getter;
+import lombok.Setter;
 
-@Path("v2/sample")
-class SampleResource {
+import java.util.Set;
 
-  @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  public String sample() {
-    return "Sample";
+@Getter
+@Setter
+public class CertificateCollectionDto extends HalRepresentation {
+  private final Set<CertificateDto> certificates;
+
+  public CertificateCollectionDto(Links links, Set<CertificateDto> certificates) {
+    super(links);
+    this.certificates = certificates;
   }
-
 }

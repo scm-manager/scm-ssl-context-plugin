@@ -1,5 +1,36 @@
 {
   "scm-ssl-context-plugin": {
-
+    "title": "SSL Context",
+    "subtitle": "Certificate overview",
+    "navLink": "SSL Context",
+    "table": {
+      "column": {
+        "commonName": "Common Name",
+        "status": "Status",
+        "timestamp": "Timestamp",
+        "certificateError": "Certificate Error",
+        "subjectDN": "Subject DN",
+        "issuerDN": "Issuer DN",
+        "notBefore": "Valid From",
+        "notAfter": "Expires On",
+        "signAlg": "Signature Algorithm",
+        "fingerprint": "SHA1 Fingerprint"
+      },
+      "details": "Details",
+      "rejected": "Rejected",
+      "approved": "Approved",
+      "emptyMessage": "No certificates found."
+    },
+    "modal": {
+      "title": "Certificate Details"
+    }
+  },
+  "permissions": {
+    "sslContext": {
+      "read": {
+        "displayName": "Access ssl context information",
+        "description": "May see the ssl context overview"
+      }
+    }
   }
 }

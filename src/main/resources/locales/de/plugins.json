@@ -1,5 +1,36 @@
 {
   "scm-ssl-context-plugin": {
-
+    "title": "SSL Kontext",
+    "subtitle": "Zertifikatsübersicht",
+    "navLink": "SSL Kontext",
+    "table": {
+      "column": {
+        "commonName": "Common Name",
+        "status": "Status",
+        "timestamp": "Zeitpunkt",
+        "certificateError": "Zertifikatsfehler",
+        "subjectDN": "Subject DN",
+        "issuerDN": "Issuer DN",
+        "notBefore": "Gültig Ab",
+        "notAfter": "Gültig Bis",
+        "signAlg": "Signatur Algorithmus",
+        "fingerprint": "SHA1 Fingerabdruck"
+      },
+      "details": "Details",
+      "rejected": "Abgelehnt",
+      "approved": "Erlaubt",
+      "emptyMessage": "Keine Zertifikate gefunden."
+    },
+    "modal": {
+      "title": "Zertifikat Details"
+    }
+  },
+  "permissions": {
+    "sslContext": {
+      "read": {
+        "displayName": "SSL Kontext Informationen lesen",
+        "description": "Darf SSL Kontext Informationen lesen"
+      }
+    }
   }
 }

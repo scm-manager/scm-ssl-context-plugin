@@ -21,30 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.cloudogu.sslcontext;
 
-import { binder } from "@scm-manager/ui-extensions";
-import { Link, Links } from "@scm-manager/ui-types";
-import React, { FC } from "react";
-import { Route } from "react-router-dom";
-import SSLContextOverview from "./SSLContextOverview";
-import SSLContextNavigation from "./SSLContextNavigation";
+import de.otto.edison.hal.HalRepresentation;
+import de.otto.edison.hal.Links;
+import lombok.Getter;
+import lombok.Setter;
 
-type PredicateProps = {
-  links: Links;
-};
+import java.time.Instant;
 
-export const predicate = ({ links }: PredicateProps) => {
-  return !!(links && links.sslContext);
-};
+@Getter
+@Setter
+public class CertificateDto extends HalRepresentation {
 
-const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
-  return (
-    <Route path="/admin/ssl-context">
-      <SSLContextOverview link={(links.sslContext as Link).href} />
-    </Route>
-  );
-};
+  private String subjectDN;
+  private String issuerDN;
+  private Instant notBefore;
+  private Instant notAfter;
+  private String signAlg;
+  private String fingerprint;
 
-binder.bind("admin.route", SSLContextRoute, predicate);
+  private Certificate.CertificateStatus status;
+  private Certificate.CertificateError certificateError;
+  private Instant timestamp;
 
-binder.bind("admin.navigation", SSLContextNavigation, predicate);
+  public CertificateDto(Links links) {
+    super(links);
+  }
+}

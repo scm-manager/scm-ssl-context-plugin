@@ -21,30 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-import { binder } from "@scm-manager/ui-extensions";
-import { Link, Links } from "@scm-manager/ui-types";
 import React, { FC } from "react";
-import { Route } from "react-router-dom";
-import SSLContextOverview from "./SSLContextOverview";
-import SSLContextNavigation from "./SSLContextNavigation";
+import { SecondaryNavigationItem } from "@scm-manager/ui-components";
+import { useTranslation } from "react-i18next";
+import { useRouteMatch } from "react-router-dom";
 
-type PredicateProps = {
-  links: Links;
-};
+const SSLContextNavigation: FC = () => {
+  const [t] = useTranslation("plugins");
+  const match = useRouteMatch();
 
-export const predicate = ({ links }: PredicateProps) => {
-  return !!(links && links.sslContext);
-};
+  const matchesSslContext = (route: any) => {
+    const regex = new RegExp("/admin/ssl-context/.+");
+    return route.location.pathname.match(regex);
+  };
 
-const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
   return (
-    <Route path="/admin/ssl-context">
-      <SSLContextOverview link={(links.sslContext as Link).href} />
-    </Route>
+    <SecondaryNavigationItem
+      to={match.url + "/ssl-context/"}
+      icon="fas fa-certificate"
+      label={t("scm-ssl-context-plugin.navLink")}
+      title={t("scm-ssl-context-plugin.navLink")}
+      activeWhenMatch={matchesSslContext}
+      activeOnlyWhenExact={false}
+    />
   );
 };
 
-binder.bind("admin.route", SSLContextRoute, predicate);
-
-binder.bind("admin.navigation", SSLContextNavigation, predicate);
+export default SSLContextNavigation;

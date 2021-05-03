@@ -21,11 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.cloudogu.sslcontext;
 
-describe("frontend unit tests", () => {
+import com.google.inject.Provider;
+import org.apache.shiro.SecurityUtils;
+import sonia.scm.api.v2.resources.Enrich;
+import sonia.scm.api.v2.resources.HalAppender;
+import sonia.scm.api.v2.resources.HalEnricher;
+import sonia.scm.api.v2.resources.HalEnricherContext;
+import sonia.scm.api.v2.resources.Index;
+import sonia.scm.api.v2.resources.LinkBuilder;
+import sonia.scm.api.v2.resources.ScmPathInfoStore;
+import sonia.scm.plugin.Extension;
 
-  it("some test", () => {
-    expect( 21 * 2 ).toBe(42);
-  });
+import javax.inject.Inject;
 
-});
+@Extension
+@Enrich(Index.class)
+public class IndexLinkEnricher implements HalEnricher {
+
+  private final Provider<ScmPathInfoStore> pathInfoStore;
+
+  @Inject
+  public IndexLinkEnricher(Provider<ScmPathInfoStore> pathInfoStore) {
+    this.pathInfoStore = pathInfoStore;
+  }
+
+  @Override
+  public void enrich(HalEnricherContext context, HalAppender appender) {
+
+    if (SecurityUtils.getSubject().isPermitted("sslContext:read")) {
+      String sslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("get")
+        .parameters()
+        .href();
+      appender.appendLink("sslContext", sslContextUrl);
+    }
+  }
+}
