@@ -108,7 +108,7 @@ class SSLContextTrustManagerTest {
   }
 
   private void assertRejected(Certificate.Error unknown) {
-    Certificate cert = store.getAll().values().iterator().next();
+    Certificate cert = store.getAll().iterator().next();
     assertThat(cert.getStatus()).isEqualTo(REJECTED);
     assertThat(cert.getError()).isEqualTo(unknown);
   }

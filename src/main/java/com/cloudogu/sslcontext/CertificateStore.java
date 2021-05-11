@@ -23,13 +23,14 @@
  */
 package com.cloudogu.sslcontext;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.shiro.SecurityUtils;
 import sonia.scm.store.DataStore;
 import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Map;
+import java.util.List;
 
 @Singleton
 public class CertificateStore {
@@ -43,14 +44,13 @@ public class CertificateStore {
     this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();
   }
 
-  public Map<String, Certificate> getAll() {
+  public List<Certificate> getAll() {
     SecurityUtils.getSubject().checkPermission("sslcontext:read");
-    return store.getAll();
+    return ImmutableList.copyOf(store.getAll().values());
   }
 
   void put(Certificate certificate) {
-    Map<String, Certificate> allCerts = getAll();
-    if (!allCerts.containsKey(certificate.getFingerprint())) {
+    if (!store.getOptional(certificate.getFingerprint()).isPresent()) {
       store.put(certificate.getFingerprint(), certificate);
     }
   }

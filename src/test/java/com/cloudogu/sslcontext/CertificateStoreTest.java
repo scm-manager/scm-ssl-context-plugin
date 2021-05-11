@@ -34,6 +34,7 @@ import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
@@ -59,14 +60,13 @@ class CertificateStoreTest {
     void shouldStoreCert() {
       byte[] encodedCert = "hitchhiker".getBytes();
 
-      certificateStore.put(new Certificate(encodedCert, UNKNOWN));
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(certificate);
 
-      Map<String, Certificate> allCerts = certificateStore.getAll();
-      assertThat(allCerts)
-        .hasSize(1)
-        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+      List<Certificate> allCerts = certificateStore.getAll();
+      assertThat(allCerts).containsOnly(certificate);
 
-      Certificate singleCert = allCerts.values().iterator().next();
+      Certificate singleCert = allCerts.iterator().next();
       assertThat(singleCert.getEncoded()).isEqualTo(encodedCert);
       assertThat(singleCert.getStatus()).isEqualTo(REJECTED);
       assertThat(singleCert.getError()).isEqualTo(UNKNOWN);
@@ -75,15 +75,13 @@ class CertificateStoreTest {
     @Test
     void shouldNotStoreCertIfAlreadyStored() {
       byte[] encodedCert = "hitchhiker".getBytes();
+
       Certificate cert = new Certificate(encodedCert, UNKNOWN);
       certificateStore.put(cert);
       certificateStore.put(cert);
       certificateStore.put(cert);
 
-      Map<String, Certificate> allCerts = certificateStore.getAll();
-      assertThat(allCerts)
-        .hasSize(1)
-        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+      assertThat(certificateStore.getAll()).containsOnly(cert);
     }
 
   }
