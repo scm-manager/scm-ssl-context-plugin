@@ -37,6 +37,6 @@ public class SSLContextModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
-    bind(SSLContext.class).annotatedWith(Names.named("Default")).toProvider(SSLContextProvider.class).in(Singleton.class);
+    bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
   }
 }
