@@ -23,18 +23,25 @@
  */
 package com.cloudogu.sslcontext;
 
+import org.apache.shiro.authz.AuthorizationException;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
 import java.time.Instant;
 import java.util.Map;
 
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_UNKNOWN;
-import static com.cloudogu.sslcontext.Certificate.CertificateStatus.REJECTED;
+import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(ShiroExtension.class)
 class CertificateStoreTest {
 
   private CertificateStore certificateStore;
@@ -44,31 +51,51 @@ class CertificateStoreTest {
     certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()));
   }
 
-  @Test
-  void shouldStoreCert() {
-    byte[] encodedCert = "hitchhiker".getBytes();
+  @Nested
+  @SubjectAware(value = "marvin", permissions = "sslContext:read")
+  class Permitted {
 
-    certificateStore.put(new Certificate(encodedCert, REJECTED, CERTIFICATE_UNKNOWN, Instant.now()));
+    @Test
+    void shouldStoreCert() {
+      byte[] encodedCert = "hitchhiker".getBytes();
 
-    Map<String, Certificate> allCerts = certificateStore.getAll();
-    assertThat(allCerts).hasSize(1);
-    assertThat(allCerts).containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
-    Certificate singleCert = allCerts.values().iterator().next();
-    assertThat(singleCert.getCertificate()).isEqualTo(encodedCert);
-    assertThat(singleCert.getStatus()).isEqualTo(REJECTED);
-    assertThat(singleCert.getCertificateError()).isEqualTo(CERTIFICATE_UNKNOWN);
+      certificateStore.put(new Certificate(encodedCert, UNKNOWN));
+
+      Map<String, Certificate> allCerts = certificateStore.getAll();
+      assertThat(allCerts)
+        .hasSize(1)
+        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+
+      Certificate singleCert = allCerts.values().iterator().next();
+      assertThat(singleCert.getEncoded()).isEqualTo(encodedCert);
+      assertThat(singleCert.getStatus()).isEqualTo(REJECTED);
+      assertThat(singleCert.getError()).isEqualTo(UNKNOWN);
+    }
+
+    @Test
+    void shouldNotStoreCertIfAlreadyStored() {
+      byte[] encodedCert = "hitchhiker".getBytes();
+      Certificate cert = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(cert);
+      certificateStore.put(cert);
+      certificateStore.put(cert);
+
+      Map<String, Certificate> allCerts = certificateStore.getAll();
+      assertThat(allCerts)
+        .hasSize(1)
+        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+    }
+
   }
 
-  @Test
-  void shouldNotStoreCertIfAlreadyStored() {
-    byte[] encodedCert = "hitchhiker".getBytes();
-    Certificate cert = new Certificate(encodedCert, REJECTED, CERTIFICATE_UNKNOWN, Instant.now());
-    certificateStore.put(cert);
-    certificateStore.put(cert);
-    certificateStore.put(cert);
+  @Nested
+  @SubjectAware("slarti")
+  class Denied {
 
-    Map<String, Certificate> allCerts = certificateStore.getAll();
-    assertThat(allCerts).hasSize(1);
-    assertThat(allCerts).containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+    @Test
+    void shouldNotAllowGetAll() {
+      assertThrows(AuthorizationException.class, () -> certificateStore.getAll());
+    }
+
   }
 }

@@ -23,6 +23,7 @@
  */
 package com.cloudogu.sslcontext;
 
+import com.google.common.io.Resources;
 import com.google.inject.util.Providers;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,11 @@ import org.junit.jupiter.api.Test;
 import sonia.scm.api.v2.resources.ScmPathInfo;
 import sonia.scm.api.v2.resources.ScmPathInfoStore;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -38,8 +43,8 @@ import java.time.Instant;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_UNKNOWN;
-import static com.cloudogu.sslcontext.Certificate.CertificateStatus.REJECTED;
+import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class CertificateMapperTest {
@@ -59,17 +64,21 @@ class CertificateMapperTest {
   }
 
   @Test
-  void shouldMapToDto() throws GeneralSecurityException {
-    X509Certificate cert = createX509Cert(createKeyPair(),0, 0);
-    Certificate certificate = new Certificate("fingerprint", cert.getEncoded(), REJECTED, CERTIFICATE_UNKNOWN, Instant.now());
+  @SuppressWarnings("UnstableApiUsage")
+  void shouldMapToDto() throws IOException {
+    URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+    byte[] encoded = Resources.toByteArray(resource);
+
+    Certificate certificate = new Certificate(encoded, UNKNOWN);
 
     CertificateDto dto = mapper.map(certificate);
 
-    assertThat(dto.getFingerprint()).isEqualTo("fingerprint");
+    assertThat(dto.getFingerprint()).isEqualTo("89c6032d1d457cde44478919989a4fc5758aca9d");
     assertThat(dto.getIssuerDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSubjectDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSignAlg()).isEqualTo("SHA256withRSA");
   }
+
 // Prepared for the next development iteration
 //  @Test
 //  void shouldMapToDtoWithApproveLink() throws GeneralSecurityException {

@@ -23,52 +23,77 @@
  */
 package com.cloudogu.sslcontext;
 
+import com.google.common.hash.Hashing;
 import lombok.Getter;
-import lombok.Setter;
 import sonia.scm.xml.XmlInstantAdapter;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 
 @Getter
-@Setter
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Certificate {
-  private byte[] certificate;
-  private CertificateStatus status;
-  private CertificateError certificateError;
+
+  private byte[] encoded;
+  private Status status;
+  private Error error;
   private String fingerprint;
   @XmlJavaTypeAdapter(XmlInstantAdapter.class)
   private Instant timestamp;
 
-  private Certificate() {
+  private Certificate() {}
+
+  public Certificate(byte[] encoded, Error error) {
+    this.encoded = encoded;
+    this.error = error;
+    this.fingerprint = createFingerprint(encoded);
+    this.status = Status.REJECTED;
+    this.timestamp = Instant.now();
   }
 
-  public Certificate(byte[] certificate, CertificateStatus status, CertificateError certificateError, Instant timestamp) {
-    this.certificate = certificate;
-    this.status = status;
-    this.certificateError = certificateError;
-    this.timestamp = timestamp;
+  @SuppressWarnings({"deprecated", "UnstableApiUsage", "java:S1874"})
+  private String createFingerprint(byte[] certificate) {
+    return Hashing.sha1().hashBytes(certificate).toString();
   }
 
-  public Certificate(String fingerprint, byte[] certificate, CertificateStatus status, CertificateError certificateError, Instant timestamp) {
-    this(certificate, status, certificateError, timestamp);
-    this.fingerprint = fingerprint;
+  public void approve() {
+    if (status == Status.REJECTED) {
+      status = Status.APPROVED;
+    } else {
+      throw new IllegalStateException("certificate is already approved");
+    }
   }
 
-  enum CertificateStatus {
+  public void reject() {
+    if (status == Status.APPROVED) {
+      status = Status.REJECTED;
+    } else {
+      throw new IllegalStateException("certificate is already rejected");
+    }
+  }
+
+  public X509Certificate toX509() throws CertificateException {
+    CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+    return (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(encoded));
+  }
+
+  enum Status {
     REJECTED,
     APPROVED
   }
 
-  enum CertificateError {
-    CERTIFICATE_UNKNOWN,
-    CERTIFICATE_EXPIRED,
-    CERTIFICATE_NOT_YET_VALID,
-    CERTIFICATE_REVOKED
+  enum Error {
+    UNKNOWN,
+    EXPIRED,
+    NOT_YET_VALID,
+    REVOKED
   }
 }

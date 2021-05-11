@@ -23,13 +23,15 @@
  */
 package com.cloudogu.sslcontext;
 
-import com.google.common.hash.Hashing;
+import org.apache.shiro.SecurityUtils;
 import sonia.scm.store.DataStore;
 import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
 
+@Singleton
 public class CertificateStore {
 
   private static final String STORE_NAME = "X509_certificates";
@@ -38,20 +40,18 @@ public class CertificateStore {
 
   @Inject
   public CertificateStore(DataStoreFactory dataStoreFactory) {
-    this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();;
+    this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();
   }
 
   public Map<String, Certificate> getAll() {
+    SecurityUtils.getSubject().checkPermission("sslcontext:read");
     return store.getAll();
   }
 
-  public void put(Certificate certificate) {
-    String fingerprint = Hashing.sha1().hashBytes(certificate.getCertificate()).toString();
+  void put(Certificate certificate) {
     Map<String, Certificate> allCerts = getAll();
-    certificate.setFingerprint(fingerprint);
-
-    if (!allCerts.containsKey(fingerprint)) {
-      store.put(fingerprint, certificate);
+    if (!allCerts.containsKey(certificate.getFingerprint())) {
+      store.put(certificate.getFingerprint(), certificate);
     }
   }
 }

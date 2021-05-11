@@ -78,15 +78,4 @@ class SSLContextResourceTest {
     verify(collectionMapper, times(1)).map(any());
   }
 
-
-  @Test
-  void shouldReturnForbiddenIfNotPermitted() throws URISyntaxException {
-    MockHttpRequest request = MockHttpRequest
-      .get("/v2/ssl-context/")
-      .contentType(SSLContextResource.MEDIA_TYPE);
-
-    dispatcher.invoke(request, response);
-
-    assertThat(response.getStatus()).isEqualTo(403);
-  }
 }

@@ -24,6 +24,8 @@
 package com.cloudogu.sslcontext;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,13 +55,14 @@ import java.security.cert.X509Certificate;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_NOT_YET_VALID;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_UNKNOWN;
-import static com.cloudogu.sslcontext.Certificate.CertificateStatus.REJECTED;
+import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
+import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(MockitoExtension.class)
+@SubjectAware(value = "trillian", permissions = "sslContext:read")
+@ExtendWith({MockitoExtension.class, ShiroExtension.class})
 class SSLContextTrustManagerTest {
 
   static {
@@ -106,7 +109,7 @@ class SSLContextTrustManagerTest {
 
       Certificate cert = dataStore.getAll().values().iterator().next();
       assertThat(cert.getStatus()).isEqualTo(REJECTED);
-      assertThat(cert.getCertificateError()).isEqualTo(CERTIFICATE_UNKNOWN);
+      assertThat(cert.getError()).isEqualTo(UNKNOWN);
 
       serverSocket.close();
     }
@@ -156,14 +159,14 @@ class SSLContextTrustManagerTest {
 
       Certificate cert = dataStore.getAll().values().iterator().next();
       assertThat(cert.getStatus()).isEqualTo(REJECTED);
-      assertThat(cert.getCertificateError()).isEqualTo(CERTIFICATE_NOT_YET_VALID);
+      assertThat(cert.getError()).isEqualTo(NOT_YET_VALID);
 
       serverSocket.close();
     }
   }
 
   SSLContext createSSLContext(KeyManager[] keyManagers) throws Exception {
-    SSLContext sslContext = SSLContext.getInstance("tls");
+    SSLContext sslContext = SSLContext.getInstance("TLS");
     sslContext.init(keyManagers, null, null);
     return sslContext;
   }

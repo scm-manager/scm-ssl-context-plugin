@@ -35,12 +35,11 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateRevokedException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_EXPIRED;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_NOT_YET_VALID;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_REVOKED;
-import static com.cloudogu.sslcontext.Certificate.CertificateError.CERTIFICATE_UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
+import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
+import static com.cloudogu.sslcontext.Certificate.Error.REVOKED;
+import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 
 public class SSLContextTrustManager implements X509TrustManager {
 
@@ -65,16 +64,16 @@ public class SSLContextTrustManager implements X509TrustManager {
     try {
       delegate.checkClientTrusted(x509Certificates, s);
     } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_EXPIRED);
+      storeAllRejectedCerts(x509Certificates, EXPIRED);
       throw ex;
     } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_NOT_YET_VALID);
+      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
       throw ex;
     } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_REVOKED);
+      storeAllRejectedCerts(x509Certificates, REVOKED);
       throw ex;
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, UNKNOWN);
       throw ex;
     }
   }
@@ -84,16 +83,16 @@ public class SSLContextTrustManager implements X509TrustManager {
     try {
       delegate.checkServerTrusted(x509Certificates, s);
     } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_EXPIRED);
+      storeAllRejectedCerts(x509Certificates, EXPIRED);
       throw ex;
     } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_NOT_YET_VALID);
+      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
       throw ex;
     } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_REVOKED);
+      storeAllRejectedCerts(x509Certificates, REVOKED);
       throw ex;
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, CERTIFICATE_UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, UNKNOWN);
       throw ex;
     }
   }
@@ -103,9 +102,9 @@ public class SSLContextTrustManager implements X509TrustManager {
     return new X509Certificate[0];
   }
 
-  private void storeAllRejectedCerts(X509Certificate[] x509Certificates, Certificate.CertificateError error) throws CertificateEncodingException {
+  private void storeAllRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
     for (X509Certificate cert : x509Certificates) {
-      store.put(new Certificate(cert.getEncoded(), Certificate.CertificateStatus.REJECTED, error, Instant.now()));
+      store.put(new Certificate(cert.getEncoded(), error));
     }
   }
 }

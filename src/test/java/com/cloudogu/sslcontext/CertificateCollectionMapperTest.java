@@ -38,13 +38,12 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.util.List;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
-import static com.cloudogu.sslcontext.Certificate.CertificateStatus.APPROVED;
-import static com.cloudogu.sslcontext.Certificate.CertificateStatus.REJECTED;
+import static com.cloudogu.sslcontext.Certificate.Status.APPROVED;
+import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CertificateCollectionMapperTest {
@@ -72,9 +71,15 @@ class CertificateCollectionMapperTest {
     KeyPair keyPair = createKeyPair();
     X509Certificate cert = createX509Cert(keyPair, 0, 0);
 
-    HalRepresentation dto = collectionMapper.map(ImmutableList.of(createCertificate(cert, APPROVED), createCertificate(cert, REJECTED)));
+    Certificate one = createCertificate(cert);
+    one.approve();
+    Certificate two = createCertificate(cert);
 
-    assertThat(dto.getLinks().getLinkBy("self").get().getHref()).isEqualTo("scm/api/v2/ssl-context/");
+    HalRepresentation dto = collectionMapper.map(ImmutableList.of(one, two));
+
+    assertThat(dto.getLinks().getLinkBy("self")).hasValueSatisfying(link -> {
+      assertThat(link.getHref()).isEqualTo("scm/api/v2/ssl-context/");
+    });
     assertThat(dto.getEmbedded().hasItem("certificates")).isTrue();
 
     List<HalRepresentation> certificates = dto.getEmbedded().getItemsBy("certificates");
@@ -88,8 +93,8 @@ class CertificateCollectionMapperTest {
     assertThat(secondCertDto.getStatus()).isEqualTo(REJECTED);
   }
 
-  private Certificate createCertificate(X509Certificate cert, Certificate.CertificateStatus status) throws CertificateEncodingException {
-    return new Certificate(cert.getEncoded(), status, Certificate.CertificateError.CERTIFICATE_UNKNOWN, Instant.now());
+  private Certificate createCertificate(X509Certificate cert) throws CertificateEncodingException {
+    return new Certificate(cert.getEncoded(), Certificate.Error.UNKNOWN);
   }
 
 }

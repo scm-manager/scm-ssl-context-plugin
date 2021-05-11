@@ -32,7 +32,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import sonia.scm.api.v2.resources.ErrorDto;
-import sonia.scm.config.ConfigurationPermissions;
 import sonia.scm.web.VndMediaType;
 
 import javax.inject.Inject;
@@ -53,7 +52,6 @@ public class SSLContextResource {
 
   private final CertificateStore store;
   private final CertificateCollectionMapper mapper;
-
 
   @Inject
   public SSLContextResource(CertificateStore store, CertificateCollectionMapper mapper) {
@@ -89,7 +87,6 @@ public class SSLContextResource {
     )
   )
   public Response get() {
-    ConfigurationPermissions.read("sslContext").check();
     Collection<Certificate> certs = store.getAll().values();
 
     return Response.ok(mapper.map(certs)).build();

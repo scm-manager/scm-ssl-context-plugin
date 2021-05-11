@@ -68,7 +68,7 @@ const SSLContextTable: FC<Props> = ({ data }) => {
         >
           {row => parseCommonNameFromDN(row.subjectDN)}
         </Column>
-        <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="certificateError" />
+        <TextColumn header={t("scm-ssl-context-plugin.table.column.error")} dataKey="error" />
         <Column
           header={t("scm-ssl-context-plugin.table.column.status")}
           createComparator={() => comparators.byKey("failed")}

@@ -32,6 +32,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
+@SuppressWarnings("java:S2160") // we need not equals for dto's
 public class CertificateDto extends HalRepresentation {
 
   private String subjectDN;
@@ -41,8 +42,8 @@ public class CertificateDto extends HalRepresentation {
   private String signAlg;
   private String fingerprint;
 
-  private Certificate.CertificateStatus status;
-  private Certificate.CertificateError certificateError;
+  private Certificate.Status status;
+  private Certificate.Error error;
   private Instant timestamp;
 
   public CertificateDto(Links links) {

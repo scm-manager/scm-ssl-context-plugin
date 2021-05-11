@@ -33,9 +33,7 @@ import sonia.scm.api.v2.resources.ScmPathInfoStore;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import static de.otto.edison.hal.Link.link;
@@ -56,18 +54,17 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
     // Prepared for the next development iteration
     // Links links = createLinks(certificate);
-    CertificateDto dto = new CertificateDto(emptyLinks());
 
+    CertificateDto dto = new CertificateDto(emptyLinks());
     try {
-      CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-      X509Certificate cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certificate.getCertificate()));
+      X509Certificate x509Certificate = certificate.toX509();
 
       dto.setFingerprint(certificate.getFingerprint());
-      dto.setIssuerDN(cert.getIssuerDN().getName());
-      dto.setSubjectDN(cert.getSubjectDN().getName());
-      dto.setNotAfter(cert.getNotAfter().toInstant());
-      dto.setNotBefore(cert.getNotBefore().toInstant());
-      dto.setSignAlg(cert.getSigAlgName());
+      dto.setIssuerDN(x509Certificate.getIssuerDN().getName());
+      dto.setSubjectDN(x509Certificate.getSubjectDN().getName());
+      dto.setNotAfter(x509Certificate.getNotAfter().toInstant());
+      dto.setNotBefore(x509Certificate.getNotBefore().toInstant());
+      dto.setSignAlg(x509Certificate.getSigAlgName());
 
     } catch (CertificateException ex) {
       throw new IllegalStateException("Could not resolve stored certificate", ex);
@@ -78,8 +75,8 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
   private Links createLinks(Certificate certificate) {
     Links.Builder linksBuilder = linkingTo();
-    if (certificate.getCertificateError() == Certificate.CertificateError.CERTIFICATE_UNKNOWN) {
-      if (certificate.getStatus() == Certificate.CertificateStatus.REJECTED) {
+    if (certificate.getError() == Certificate.Error.UNKNOWN) {
+      if (certificate.getStatus() == Certificate.Status.REJECTED) {
         linksBuilder.single(link("approve", createLink("approve")));
       } else {
         linksBuilder.single(link("reject", createLink("reject")));
