@@ -29,7 +29,6 @@ import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -37,12 +36,9 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateRevokedException;
 import java.security.cert.X509Certificate;
 
-import static com.cloudogu.sslcontext.Certificate.Error.ALGORITHM_CONSTRAINED;
 import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
-import static com.cloudogu.sslcontext.Certificate.Error.INVALID_SIGNATURE;
 import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
 import static com.cloudogu.sslcontext.Certificate.Error.REVOKED;
-import static com.cloudogu.sslcontext.Certificate.Error.UNDETERMINED_REVOCATION_STATUS;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 
 public class SSLContextTrustManager implements X509TrustManager {
@@ -98,37 +94,12 @@ public class SSLContextTrustManager implements X509TrustManager {
       return NOT_YET_VALID;
     } else if (ex instanceof CertificateRevokedException) {
       return REVOKED;
-    } else if ( ex instanceof CertPathValidatorException ) {
-      Certificate.Error error = errorFromCertPathValidator((CertPathValidatorException) ex);
-      if (error != null) {
-        return error;
-      }
     }
     Throwable cause = ex.getCause();
     if (cause != null) {
       return error(cause);
     }
     return UNKNOWN;
-  }
-
-  private Certificate.Error errorFromCertPathValidator(CertPathValidatorException ex) {
-    CertPathValidatorException.Reason reason = ex.getReason();
-    if (reason == CertPathValidatorException.BasicReason.EXPIRED) {
-      return EXPIRED;
-    } else if (reason == CertPathValidatorException.BasicReason.NOT_YET_VALID) {
-      return NOT_YET_VALID;
-    } else if (reason == CertPathValidatorException.BasicReason.REVOKED) {
-      return REVOKED;
-    } else if (reason == CertPathValidatorException.BasicReason.INVALID_SIGNATURE) {
-      return INVALID_SIGNATURE;
-    } else if (reason == CertPathValidatorException.BasicReason.ALGORITHM_CONSTRAINED) {
-      return ALGORITHM_CONSTRAINED;
-    } else if (reason == CertPathValidatorException.BasicReason.UNDETERMINED_REVOCATION_STATUS) {
-      return UNDETERMINED_REVOCATION_STATUS;
-    } else if (reason == CertPathValidatorException.BasicReason.UNSPECIFIED) {
-      return UNKNOWN;
-    }
-    return null;
   }
 
   @Override
