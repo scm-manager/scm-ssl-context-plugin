@@ -68,32 +68,15 @@ public class SSLContextTrustManager implements X509TrustManager {
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
       throw new IllegalStateException("Could not find default trust manager", e);
     }
-    return delegate;
+    return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
   }
 
   @Override
   public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       delegate.checkClientTrusted(x509Certificates, s);
-    } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, EXPIRED);
-      throw ex;
-    } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
-      throw ex;
-    } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, REVOKED);
-      throw ex;
     } catch (CertificateException ex) {
-      if (ex.getCause() instanceof CertPathValidatorException) {
-        CertPathValidatorException validatorException = (CertPathValidatorException) ex.getCause();
-        if (validatorException.getReason() == CertPathValidatorException.BasicReason.EXPIRED) {
-          storeAllRejectedCerts(x509Certificates, EXPIRED);
-        } else {
-          storeAllRejectedCerts(x509Certificates, UNKNOWN);
-        }
-      }
-      storeAllRejectedCerts(x509Certificates, UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }

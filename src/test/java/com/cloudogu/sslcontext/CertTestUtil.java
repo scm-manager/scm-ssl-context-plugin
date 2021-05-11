@@ -24,6 +24,7 @@
 package com.cloudogu.sslcontext;
 
 import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import java.math.BigInteger;
@@ -32,11 +33,16 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
 
 public class CertTestUtil {
+
+  static {
+    Security.addProvider(new BouncyCastleProvider());
+  }
 
   private CertTestUtil() {}
 
