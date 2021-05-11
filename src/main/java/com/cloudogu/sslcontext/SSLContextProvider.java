@@ -52,7 +52,7 @@ class SSLContextProvider implements Provider<SSLContext> {
   @Override
   public SSLContext get() {
     try {
-      SSLContext sslContext = SSLContext.getInstance("tls");
+      SSLContext sslContext = SSLContext.getInstance("TLS");
       sslContext.init(keyManagers, new SSLContextTrustManager[]{capturingSslTrustManager}, null);
       return sslContext;
     } catch (GeneralSecurityException e) {
