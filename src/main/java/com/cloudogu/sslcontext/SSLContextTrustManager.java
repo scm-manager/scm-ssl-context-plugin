@@ -29,6 +29,7 @@ import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -36,9 +37,12 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateRevokedException;
 import java.security.cert.X509Certificate;
 
+import static com.cloudogu.sslcontext.Certificate.Error.ALGORITHM_CONSTRAINED;
 import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
+import static com.cloudogu.sslcontext.Certificate.Error.INVALID_SIGNATURE;
 import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
 import static com.cloudogu.sslcontext.Certificate.Error.REVOKED;
+import static com.cloudogu.sslcontext.Certificate.Error.UNDETERMINED_REVOCATION_STATUS;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 
 public class SSLContextTrustManager implements X509TrustManager {
@@ -48,7 +52,15 @@ public class SSLContextTrustManager implements X509TrustManager {
 
   @Inject
   public SSLContextTrustManager(CertificateStore store) {
+    this(store, null);
+  }
+
+  SSLContextTrustManager(CertificateStore store, X509TrustManager delegate) {
     this.store = store;
+    this.delegate = delegate != null ? delegate : createDefaultDelegate();
+  }
+
+  private X509TrustManager createDefaultDelegate() {
     TrustManagerFactory trustManagerFactory;
     try {
       trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -56,7 +68,7 @@ public class SSLContextTrustManager implements X509TrustManager {
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
       throw new IllegalStateException("Could not find default trust manager", e);
     }
-    delegate = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+    return delegate;
   }
 
   @Override
@@ -73,6 +85,14 @@ public class SSLContextTrustManager implements X509TrustManager {
       storeAllRejectedCerts(x509Certificates, REVOKED);
       throw ex;
     } catch (CertificateException ex) {
+      if (ex.getCause() instanceof CertPathValidatorException) {
+        CertPathValidatorException validatorException = (CertPathValidatorException) ex.getCause();
+        if (validatorException.getReason() == CertPathValidatorException.BasicReason.EXPIRED) {
+          storeAllRejectedCerts(x509Certificates, EXPIRED);
+        } else {
+          storeAllRejectedCerts(x509Certificates, UNKNOWN);
+        }
+      }
       storeAllRejectedCerts(x509Certificates, UNKNOWN);
       throw ex;
     }
@@ -82,19 +102,50 @@ public class SSLContextTrustManager implements X509TrustManager {
   public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       delegate.checkServerTrusted(x509Certificates, s);
-    } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, EXPIRED);
-      throw ex;
-    } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
-      throw ex;
-    } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, REVOKED);
-      throw ex;
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
+  }
+
+  private Certificate.Error error(Throwable ex) {
+    if (ex instanceof CertificateExpiredException) {
+      return EXPIRED;
+    } else if (ex instanceof CertificateNotYetValidException) {
+      return NOT_YET_VALID;
+    } else if (ex instanceof CertificateRevokedException) {
+      return REVOKED;
+    } else if ( ex instanceof CertPathValidatorException ) {
+      Certificate.Error error = errorFromCertPathValidator((CertPathValidatorException) ex);
+      if (error != null) {
+        return error;
+      }
+    }
+    Throwable cause = ex.getCause();
+    if (cause != null) {
+      return error(cause);
+    }
+    return UNKNOWN;
+  }
+
+  private Certificate.Error errorFromCertPathValidator(CertPathValidatorException ex) {
+    CertPathValidatorException.Reason reason = ex.getReason();
+    if (reason == CertPathValidatorException.BasicReason.EXPIRED) {
+      return EXPIRED;
+    } else if (reason == CertPathValidatorException.BasicReason.NOT_YET_VALID) {
+      return NOT_YET_VALID;
+    } else if (reason == CertPathValidatorException.BasicReason.REVOKED) {
+      return REVOKED;
+    } else if (reason == CertPathValidatorException.BasicReason.INVALID_SIGNATURE) {
+      return INVALID_SIGNATURE;
+    } else if (reason == CertPathValidatorException.BasicReason.ALGORITHM_CONSTRAINED) {
+      return ALGORITHM_CONSTRAINED;
+    } else if (reason == CertPathValidatorException.BasicReason.UNDETERMINED_REVOCATION_STATUS) {
+      return UNDETERMINED_REVOCATION_STATUS;
+    } else if (reason == CertPathValidatorException.BasicReason.UNSPECIFIED) {
+      return UNKNOWN;
+    }
+    return null;
   }
 
   @Override
