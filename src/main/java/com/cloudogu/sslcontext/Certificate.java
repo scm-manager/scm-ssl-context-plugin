@@ -42,7 +42,9 @@ import java.time.Instant;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Certificate {
 
+  private Certificate parent;
   private byte[] encoded;
+
   private Status status;
   private Error error;
   private String fingerprint;
@@ -52,6 +54,11 @@ public class Certificate {
   private Certificate() {}
 
   public Certificate(byte[] encoded, Error error) {
+    this(null, encoded, error);
+  }
+
+  public Certificate(Certificate parent, byte[] encoded, Error error) {
+    this.parent = parent;
     this.encoded = encoded;
     this.error = error;
     this.fingerprint = createFingerprint(encoded);
