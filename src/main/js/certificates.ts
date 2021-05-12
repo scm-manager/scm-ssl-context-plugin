@@ -31,7 +31,7 @@ type CertificateError =
 type CertificateStatus = "REJECTED" | "APPROVED";
 
 export type Certificate = {
-  certificateError: CertificateError;
+  error: CertificateError;
   fingerprint: string;
   issuerDN: string;
   notAfter: Date;

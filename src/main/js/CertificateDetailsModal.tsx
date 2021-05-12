@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 import React, { FC } from "react";
-import { Icon, Modal } from "@scm-manager/ui-components";
+import { Modal } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate } from "./certificates";
 import { formatAsTimestamp } from "./SSLContextTable";
@@ -40,24 +40,8 @@ const CertificateDetailsModal: FC<Props> = ({ onClose, modalData, active }) => {
     <table className="table">
       <tbody>
         <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.status")}</th>
-          <td>
-            {modalData.status === "REJECTED" ? (
-              <>
-                <Icon color="danger" name="exclamation-triangle" />
-                {" " + t("scm-ssl-context-plugin.table.rejected")}
-              </>
-            ) : (
-              <>
-                <Icon color="success" name="check-circle" iconStyle="far" />
-                {" " + t("scm-ssl-context-plugin.table.approved")}
-              </>
-            )}
-          </td>
-        </tr>
-        <tr>
           <th>{t("scm-ssl-context-plugin.table.column.certificateError")}</th>
-          <td>{modalData.certificateError}</td>
+          <td>{modalData.error}</td>
         </tr>
         <tr>
           <th>{t("scm-ssl-context-plugin.table.column.timestamp")}</th>

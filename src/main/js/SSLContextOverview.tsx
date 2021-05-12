@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 import React, { FC, useEffect, useState } from "react";
-import { apiClient, ErrorNotification, Loading, Title, Subtitle } from "@scm-manager/ui-components";
+import { apiClient, ErrorNotification, Loading, Title } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import SSLContextTable from "./SSLContextTable";
 import { HalRepresentation } from "@scm-manager/ui-types";
@@ -58,7 +58,6 @@ const SSLContextOverview: FC<Props> = ({ link }) => {
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <Subtitle subtitle={t("scm-ssl-context-plugin.subtitle")} />
       <SSLContextTable data={data?._embedded?.certificates as Certificate[]} />
     </>
   );

@@ -75,7 +75,7 @@ public class CapturingTrustManager implements X509TrustManager {
     try {
       delegate.checkClientTrusted(x509Certificates, s);
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, error(ex));
+      storeRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }
@@ -85,7 +85,7 @@ public class CapturingTrustManager implements X509TrustManager {
     try {
       delegate.checkServerTrusted(x509Certificates, s);
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, error(ex));
+      storeRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }
@@ -110,16 +110,13 @@ public class CapturingTrustManager implements X509TrustManager {
     return delegate.getAcceptedIssuers();
   }
 
-  private void storeAllRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
-
+  private void storeRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
     Certificate mainCertificate = wrapNestedCerts(x509Certificates, error);
-
-    try {
-      Files.write(Paths.get("/home/edi/Projects/scm-ssl-context-plugin/src/test/resources/com/cloudogu/sslcontext/cert-002-expired"), x509Certificates[0].getEncoded());
-    } catch (IOException e) {
-      throw new IllegalStateException();
-    }
-
+//    try {
+//      Files.write(Paths.get("/home/edi/Projects/scm-ssl-context-plugin/src/test/resources/com/cloudogu/sslcontext/cert-002-expired"), x509Certificates[0].getEncoded());
+//    } catch (IOException e) {
+//      throw new IllegalStateException();
+//    }
     store.put(mainCertificate);
   }
 
