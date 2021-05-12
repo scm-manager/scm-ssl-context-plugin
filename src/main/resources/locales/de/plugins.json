@@ -4,6 +4,7 @@
     "navLink": "SSL Kontext",
     "table": {
       "column": {
+        "chain": "Zertifikatskette",
         "commonName": "Common Name",
         "status": "Status",
         "timestamp": "Letzter Fehlschlag",

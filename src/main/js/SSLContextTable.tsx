@@ -25,7 +25,7 @@ import React, { FC, useState } from "react";
 import { Column, comparators, Subtitle, Table, TextColumn } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { Certificate } from "./certificates";
+import { Certificate, parseCommonNameFromDN } from "./certificates";
 import CertificateDetailsModal from "./CertificateDetailsModal";
 
 type Props = {
@@ -39,19 +39,11 @@ export const formatAsTimestamp = (date: Date) => {
 const SSLContextTable: FC<Props> = ({ data }) => {
   const [t] = useTranslation("plugins");
   const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState<Certificate | undefined>();
+  const [modalData, setModalData] = useState<Certificate>();
 
   const openModal = (certificate: Certificate) => {
     setModalData(certificate);
     setShowModal(true);
-  };
-
-  const parseCommonNameFromDN = (dn: string) => {
-    const commonName = dn
-      .split(",")
-      .filter((s: string) => s.includes("CN="))[0]
-      .trim();
-    return commonName.substr(3, commonName.length + 1);
   };
 
   return (

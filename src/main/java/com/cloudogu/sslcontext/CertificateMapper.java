@@ -78,6 +78,9 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     while (chainCert != null) {
       CertificateDto chainCertDto = new CertificateDto(emptyLinks(), emptyEmbedded());
       chainCertDto.setParent(certificate.getFingerprint());
+      chainCertDto.setStatus(certificate.getStatus());
+      chainCertDto.setError(certificate.getError());
+      chainCertDto.setTimestamp(certificate.getTimestamp());
       setCertFieldsToDto(chainCert, chainCertDto);
       chainCerts.add(chainCertDto);
       chainCert = chainCert.getParent();
