@@ -64,7 +64,6 @@ class SSLContextResourceTest {
   }
 
   @Test
-  @SubjectAware(permissions = "configuration:read:sslContext" )
   void shouldGetCerts() throws URISyntaxException {
     MockHttpRequest request = MockHttpRequest
       .get("/v2/ssl-context/")
@@ -78,4 +77,29 @@ class SSLContextResourceTest {
     verify(collectionMapper, times(1)).map(any());
   }
 
+  @Test
+  void shouldApproveCert() throws URISyntaxException {
+    MockHttpRequest request = MockHttpRequest
+      .get("/v2/ssl-context/approve/42")
+      .contentType(SSLContextResource.MEDIA_TYPE);
+
+    dispatcher.invoke(request, response);
+
+    assertThat(response.getStatus()).isEqualTo(204);
+
+    verify(store, times(1)).approve("42");
+  }
+
+  @Test
+  void shouldRejectCert() throws URISyntaxException {
+    MockHttpRequest request = MockHttpRequest
+      .get("/v2/ssl-context/reject/42")
+      .contentType(SSLContextResource.MEDIA_TYPE);
+
+    dispatcher.invoke(request, response);
+
+    assertThat(response.getStatus()).isEqualTo(204);
+
+    verify(store, times(1)).reject("42");
+  }
 }

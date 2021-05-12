@@ -37,6 +37,7 @@ import sonia.scm.web.VndMediaType;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -90,5 +91,69 @@ public class SSLContextResource {
     Collection<Certificate> certs = store.getAll().values();
 
     return Response.ok(mapper.map(certs)).build();
+  }
+
+  @GET
+  @Path("/approve/{id}")
+  @Produces(MEDIA_TYPE)
+  @Operation(
+    summary = "Approve single certificate",
+    description = "Approves a single server certificate",
+    tags = "SSL Context Plugin",
+    operationId = "ssl_context_approve_cert"
+  )
+  @ApiResponse(
+    responseCode = "204",
+    description = "success",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON,
+      schema = @Schema(implementation = HalRepresentation.class)
+    )
+  )
+  @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
+  @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to write the data")
+  @ApiResponse(
+    responseCode = "500",
+    description = "internal server error",
+    content = @Content(
+      mediaType = VndMediaType.ERROR_TYPE,
+      schema = @Schema(implementation = ErrorDto.class)
+    )
+  )
+  public Response approve(@PathParam("id") String id) {
+    store.approve(id);
+    return Response.noContent().build();
+  }
+
+  @GET
+  @Path("/reject/{id}")
+  @Produces(MEDIA_TYPE)
+  @Operation(
+    summary = "Reject single approved certificate",
+    description = "Rejects a single approved server certificate",
+    tags = "SSL Context Plugin",
+    operationId = "ssl_context_reject_cert"
+  )
+  @ApiResponse(
+    responseCode = "204",
+    description = "success",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON,
+      schema = @Schema(implementation = HalRepresentation.class)
+    )
+  )
+  @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
+  @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to write the data")
+  @ApiResponse(
+    responseCode = "500",
+    description = "internal server error",
+    content = @Content(
+      mediaType = VndMediaType.ERROR_TYPE,
+      schema = @Schema(implementation = ErrorDto.class)
+    )
+  )
+  public Response reject(@PathParam("id") String id) {
+    store.reject(id);
+    return Response.noContent().build();
   }
 }

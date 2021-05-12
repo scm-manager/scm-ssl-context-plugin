@@ -23,6 +23,7 @@
  */
 package com.cloudogu.sslcontext;
 
+import com.google.common.io.Resources;
 import org.apache.shiro.authz.AuthorizationException;
 import org.github.sdorra.jse.ShiroExtension;
 import org.github.sdorra.jse.SubjectAware;
@@ -30,13 +31,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import sonia.scm.NotFoundException;
 import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
-import java.time.Instant;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Status.APPROVED;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,12 +52,12 @@ class CertificateStoreTest {
 
   @BeforeEach
   void initStore() {
-    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()));
+    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()), blobStore);
   }
 
   @Nested
   @SubjectAware(value = "marvin", permissions = "sslContext:read")
-  class Permitted {
+  class WithReadPermission {
 
     @Test
     void shouldStoreCert() {
@@ -89,8 +93,55 @@ class CertificateStoreTest {
   }
 
   @Nested
+  @SubjectAware(value = "arthur", permissions = "sslContext:read,write")
+  class WithWritePermission {
+
+    @Test
+    void shouldThrowNotFoundExceptionOnApprove() {
+      assertThrows(NotFoundException.class, () -> certificateStore.approve("42"));
+    }
+
+    @Test
+    void shouldThrowNotFoundExceptionOnReject() {
+      assertThrows(NotFoundException.class, () -> certificateStore.reject("42"));
+    }
+
+    @Test
+    void shouldApproveAndRejectCertificate() throws IOException {
+      String fingerprint = "89c6032d1d457cde44478919989a4fc5758aca9d";
+      URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+      byte[] encoded = Resources.toByteArray(resource);
+      certificateStore.put(new Certificate(encoded, UNKNOWN));
+
+      certificateStore.approve(fingerprint);
+
+      Certificate storedCert = getStoredCertById(fingerprint);
+      assertThat(storedCert.getEncoded()).isEqualTo(encoded);
+      assertThat(storedCert.getStatus()).isEqualTo(APPROVED);
+
+      certificateStore.reject(fingerprint);
+
+      storedCert = getStoredCertById(fingerprint);
+      assertThat(storedCert.getEncoded()).isEqualTo(encoded);
+      assertThat(storedCert.getStatus()).isEqualTo(REJECTED);
+    }
+  }
+
+  private Certificate getStoredCertById(String id) {
+    Certificate storedCert = certificateStore
+      .getAll()
+      .entrySet()
+      .stream()
+      .filter(e -> e.getKey().equals(id))
+      .findFirst()
+      .get()
+      .getValue();
+    return storedCert;
+  }
+
+  @Nested
   @SubjectAware("slarti")
-  class Denied {
+  class WithoutPermission {
 
     @Test
     void shouldNotAllowGetAll() {

@@ -102,7 +102,7 @@ class SSLContextTrustManagerTest {
         }
       }).start();
 
-      SSLContextProvider sslContextProvider = new SSLContextProvider(new SSLContextTrustManager(new CertificateStore(new InMemoryDataStoreFactory(dataStore))));
+      SSLContextProvider sslContextProvider = new SSLContextProvider(new SSLContextTrustManager(new CertificateStore(new InMemoryDataStoreFactory(dataStore), blobStore)));
       SSLSocket localhost = ((SSLSocket) sslContextProvider.get().getSocketFactory().createSocket("localhost", serverSocket.getLocalPort()));
 
       assertThrows(SSLHandshakeException.class, localhost::startHandshake);
@@ -125,8 +125,8 @@ class SSLContextTrustManagerTest {
         new SSLContextProvider(
           new SSLContextTrustManager(
             new CertificateStore(
-              new InMemoryDataStoreFactory(dataStore)
-            )
+              new InMemoryDataStoreFactory(dataStore),
+                    blobStore)
           ),
           keyManagers
         );

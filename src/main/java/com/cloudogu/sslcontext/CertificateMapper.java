@@ -37,7 +37,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static de.otto.edison.hal.Link.link;
-import static de.otto.edison.hal.Links.emptyLinks;
 import static de.otto.edison.hal.Links.linkingTo;
 
 @Mapper
@@ -52,10 +51,9 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
   @ObjectFactory
   CertificateDto createDto(Certificate certificate) {
 
-    // Prepared for the next development iteration
-    // Links links = createLinks(certificate);
+    Links links = createLinks(certificate);
+    CertificateDto dto = new CertificateDto(links);
 
-    CertificateDto dto = new CertificateDto(emptyLinks());
     try {
       X509Certificate x509Certificate = certificate.toX509();
 
@@ -77,18 +75,18 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     Links.Builder linksBuilder = linkingTo();
     if (certificate.getError() == Certificate.Error.UNKNOWN) {
       if (certificate.getStatus() == Certificate.Status.REJECTED) {
-        linksBuilder.single(link("approve", createLink("approve")));
+        linksBuilder.single(link("approve", createLink("approve", certificate.getFingerprint())));
       } else {
-        linksBuilder.single(link("reject", createLink("reject")));
+        linksBuilder.single(link("reject", createLink("reject", certificate.getFingerprint())));
       }
     }
     return linksBuilder.build();
   }
 
-  private String createLink(String name) {
+  private String createLink(String name, String id) {
     return new LinkBuilder(scmPathInfoStore.get().get(), SSLContextResource.class)
       .method(name)
-      .parameters()
+      .parameters(id)
       .href();
   }
 }
