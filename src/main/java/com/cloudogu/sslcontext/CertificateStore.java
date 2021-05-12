@@ -50,8 +50,6 @@ public class CertificateStore {
   }
 
   void put(Certificate certificate) {
-    if (!store.getOptional(certificate.getFingerprint()).isPresent()) {
-      store.put(certificate.getFingerprint(), certificate);
-    }
+    store.put(certificate.getFingerprint(), certificate);
   }
 }

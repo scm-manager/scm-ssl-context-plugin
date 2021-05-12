@@ -33,10 +33,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
+import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,12 +75,15 @@ class CertificateStoreTest {
     void shouldNotStoreCertIfAlreadyStored() {
       byte[] encodedCert = "hitchhiker".getBytes();
 
-      Certificate cert = new Certificate(encodedCert, UNKNOWN);
-      certificateStore.put(cert);
-      certificateStore.put(cert);
-      certificateStore.put(cert);
+      Certificate firstReject = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(firstReject);
+      Certificate secondReject = new Certificate(encodedCert, EXPIRED);
+      certificateStore.put(secondReject);
+      Certificate thirdReject = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(thirdReject);
 
-      assertThat(certificateStore.getAll()).containsOnly(cert);
+      assertThat(certificateStore.getAll().size()).isEqualTo(1);
+      assertThat(certificateStore.getAll().get(0).getFingerprint()).isEqualTo("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
     }
 
   }

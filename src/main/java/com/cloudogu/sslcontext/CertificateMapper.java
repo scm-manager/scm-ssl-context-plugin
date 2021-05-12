@@ -23,6 +23,7 @@
  */
 package com.cloudogu.sslcontext;
 
+import de.otto.edison.hal.Embedded;
 import de.otto.edison.hal.Links;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -35,7 +36,10 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
+import static de.otto.edison.hal.Embedded.emptyEmbedded;
 import static de.otto.edison.hal.Link.link;
 import static de.otto.edison.hal.Links.emptyLinks;
 import static de.otto.edison.hal.Links.linkingTo;
@@ -47,6 +51,7 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
   Provider<ScmPathInfoStore> scmPathInfoStore;
 
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "parent", ignore = true)
   public abstract CertificateDto map(Certificate certificate);
 
   @ObjectFactory
@@ -55,7 +60,32 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     // Prepared for the next development iteration
     // Links links = createLinks(certificate);
 
-    CertificateDto dto = new CertificateDto(emptyLinks());
+    List<CertificateDto> chainCerts = mapChainCerts(certificate);
+
+    CertificateDto dto = new CertificateDto(emptyLinks(), Embedded.embeddedBuilder().with("chainCerts", chainCerts).build());
+    if (!chainCerts.isEmpty()) {
+      dto.setParent(chainCerts.get(0).getFingerprint());
+    }
+    setCertFieldsToDto(certificate, dto);
+
+    return dto;
+  }
+
+  private List<CertificateDto> mapChainCerts(Certificate certificate) {
+    List<CertificateDto> chainCerts = new ArrayList<>();
+
+    Certificate chainCert = certificate.getParent();
+    while (chainCert != null) {
+      CertificateDto chainCertDto = new CertificateDto(emptyLinks(), emptyEmbedded());
+      chainCertDto.setParent(certificate.getFingerprint());
+      setCertFieldsToDto(chainCert, chainCertDto);
+      chainCerts.add(chainCertDto);
+      chainCert = chainCert.getParent();
+    }
+    return chainCerts;
+  }
+
+  private void setCertFieldsToDto(Certificate certificate, CertificateDto dto) {
     try {
       X509Certificate x509Certificate = certificate.toX509();
 
@@ -69,8 +99,6 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     } catch (CertificateException ex) {
       throw new IllegalStateException("Could not resolve stored certificate", ex);
     }
-
-    return dto;
   }
 
   private Links createLinks(Certificate certificate) {

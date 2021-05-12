@@ -23,6 +23,7 @@
  */
 package com.cloudogu.sslcontext;
 
+import de.otto.edison.hal.Embedded;
 import de.otto.edison.hal.HalRepresentation;
 import de.otto.edison.hal.Links;
 import lombok.Getter;
@@ -34,7 +35,7 @@ import java.time.Instant;
 @Setter
 @SuppressWarnings("java:S2160") // we need not equals for dto's
 public class CertificateDto extends HalRepresentation {
-
+  private String parent;
   private String subjectDN;
   private String issuerDN;
   private Instant notBefore;
@@ -46,7 +47,7 @@ public class CertificateDto extends HalRepresentation {
   private Certificate.Error error;
   private Instant timestamp;
 
-  public CertificateDto(Links links) {
-    super(links);
+  public CertificateDto(Links links, Embedded embedded) {
+    super(links, embedded);
   }
 }
