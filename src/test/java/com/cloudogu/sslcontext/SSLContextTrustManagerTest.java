@@ -23,168 +23,123 @@
  */
 package com.cloudogu.sslcontext;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.github.sdorra.jse.ShiroExtension;
 import org.github.sdorra.jse.SubjectAware;
-import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
+import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
 import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SubjectAware(value = "trillian", permissions = "sslContext:read")
-@ExtendWith({MockitoExtension.class, ShiroExtension.class})
+@ExtendWith({ShiroExtension.class, SecureEchoServerExtension.class})
 class SSLContextTrustManagerTest {
 
-  static {
-    Security.addProvider(new BouncyCastleProvider());
-  }
-
-  private ServerSocket serverSocket;
   private static final char[] PASSWORD = "test".toCharArray();
 
-  private final InMemoryDataStore<Certificate> dataStore = new InMemoryDataStore<>();
+  private CertificateStore store;
 
-  @Nested
-  class withUnknownCert {
+  @BeforeEach
+  void setUpStore() {
+    store = new CertificateStore(new InMemoryDataStoreFactory());
+  }
 
-    @Test
-    void shouldStoreUnknownCertificate() throws Exception {
-      KeyManager[] keyManagers = getKeyManagers(createKeyStore(0, 40000));
-      SSLServerSocketFactory serverSocketFactory = createSSLContext(keyManagers).getServerSocketFactory();
-      serverSocket = serverSocketFactory.createServerSocket(0);
-      new Thread(() -> {
-        try {
-          Socket accept = serverSocket.accept();
-          BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(accept.getInputStream()));
+  @Test
+  void shouldStoreUnknownCertificate(EchoServer echoServer) throws Exception {
+    KeyStore keyStore = createKeyStore(
+      Instant.now().minus(1, ChronoUnit.MINUTES),
+      Instant.now().plus(1, ChronoUnit.MINUTES)
+    );
 
-          String line = bufferedReader.readLine();
+    echoServer.start(keyStore, PASSWORD);
 
-          while (line != null) {
-            System.out.println(line);
-            line = bufferedReader.readLine();
-          }
+    SSLContextProvider sslContextProvider = createSSLContextProvider();
+    echoServer.send(sslContextProvider, "hi");
 
-          bufferedReader.close();
-          accept.close();
+    assertRejected(UNKNOWN);
+  }
 
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }).start();
+  @Test
+  void shouldStoreNotYetValidCertificate(EchoServer echoServer) throws Exception {
+    KeyStore keyStore = createKeyStore(
+      Instant.now().plus(1, ChronoUnit.MINUTES),
+      Instant.now().plus(2, ChronoUnit.MINUTES)
+    );
 
-      SSLContextProvider sslContextProvider = new SSLContextProvider(new SSLContextTrustManager(new CertificateStore(new InMemoryDataStoreFactory(dataStore), blobStore)));
-      SSLSocket localhost = ((SSLSocket) sslContextProvider.get().getSocketFactory().createSocket("localhost", serverSocket.getLocalPort()));
+    echoServer.start(keyStore, PASSWORD);
 
-      assertThrows(SSLHandshakeException.class, localhost::startHandshake);
+    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
+    echoServer.send(sslContextProvider, "hello");
 
-      Certificate cert = dataStore.getAll().values().iterator().next();
-      assertThat(cert.getStatus()).isEqualTo(REJECTED);
-      assertThat(cert.getError()).isEqualTo(UNKNOWN);
+    assertRejected(NOT_YET_VALID);
+  }
 
-      serverSocket.close();
+  @Test
+  void shouldStoreExpiredCertificate(EchoServer echoServer) throws Exception {
+    KeyStore keyStore = createKeyStore(
+      Instant.now().minus(2, ChronoUnit.MINUTES),
+      Instant.now().minus(1, ChronoUnit.MINUTES)
+    );
+
+    echoServer.start(keyStore, PASSWORD);
+
+    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
+    echoServer.send(sslContextProvider, "hello");
+
+    assertRejected(EXPIRED);
+  }
+
+  private void assertRejected(Certificate.Error unknown) {
+    Certificate cert = store.getAll().iterator().next();
+    assertThat(cert.getStatus()).isEqualTo(REJECTED);
+    assertThat(cert.getError()).isEqualTo(unknown);
+  }
+
+  private SSLContextProvider createSSLContextProvider(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException {
+    return new SSLContextProvider(
+      new SSLContextTrustManager(store, getTrustManager(trustStore))
+    );
+  }
+
+  private SSLContextProvider createSSLContextProvider() throws NoSuchAlgorithmException, KeyStoreException {
+    return createSSLContextProvider(null);
+  }
+
+  private X509TrustManager getTrustManager(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException {
+    if (trustStore == null) {
+      return null;
     }
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    trustManagerFactory.init(trustStore);
+    return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
   }
 
-  @Nested
-  class withNotYetValidCert {
-    @Test
-    void shouldStoreNotYetValidCertificate() throws Exception {
-      KeyManager[] keyManagers = getKeyManagers(createKeyStore(0, 40000));
-      SSLServerSocketFactory serverSocketFactory = createSSLContext(keyManagers).getServerSocketFactory();
-      SSLContextProvider sslContextProvider =
-        new SSLContextProvider(
-          new SSLContextTrustManager(
-            new CertificateStore(
-              new InMemoryDataStoreFactory(dataStore),
-                    blobStore)
-          ),
-          keyManagers
-        );
-
-      serverSocket = serverSocketFactory.createServerSocket(0);
-      new Thread(() -> {
-        try {
-          Socket accept = serverSocket.accept();
-          BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(accept.getInputStream()));
-
-          String line = bufferedReader.readLine();
-
-          while (line != null) {
-            System.out.println(line);
-            line = bufferedReader.readLine();
-          }
-
-          bufferedReader.close();
-          accept.close();
-
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }).start();
-
-
-      Socket localhost = sslContextProvider.get().getSocketFactory().createSocket("localhost", serverSocket.getLocalPort());
-
-      localhost.getOutputStream().write("test".getBytes());
-
-      Certificate cert = dataStore.getAll().values().iterator().next();
-      assertThat(cert.getStatus()).isEqualTo(REJECTED);
-      assertThat(cert.getError()).isEqualTo(NOT_YET_VALID);
-
-      serverSocket.close();
-    }
-  }
-
-  SSLContext createSSLContext(KeyManager[] keyManagers) throws Exception {
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(keyManagers, null, null);
-    return sslContext;
-  }
-
-  private KeyManager[] getKeyManagers(KeyStore keyStore) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
-    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    keyManagerFactory.init(keyStore, PASSWORD);
-    return keyManagerFactory.getKeyManagers();
-  }
-
-  KeyStore createKeyStore(long start, long end) throws Exception {
+  private KeyStore createKeyStore(Instant start, Instant end) throws Exception {
     KeyPair keyPair = createKeyPair();
     X509Certificate cert = createX509Cert(keyPair, start, end);
     return saveCert(cert, keyPair.getPrivate());
   }
 
   private KeyStore saveCert(X509Certificate cert, PrivateKey key) throws Exception {
-    KeyStore keyStore = KeyStore.getInstance("JKS");
+    KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
     keyStore.load(null, null);
     keyStore.setKeyEntry("hitchhiker_cert", key, PASSWORD, new java.security.cert.Certificate[]{cert});
     return keyStore;

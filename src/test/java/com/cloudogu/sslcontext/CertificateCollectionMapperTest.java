@@ -38,6 +38,7 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.List;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
@@ -69,7 +70,7 @@ class CertificateCollectionMapperTest {
   @Test
   void shouldMapCollectionWithSelfLink() throws GeneralSecurityException {
     KeyPair keyPair = createKeyPair();
-    X509Certificate cert = createX509Cert(keyPair, 0, 0);
+    X509Certificate cert = createX509Cert(keyPair, Instant.now(), Instant.now());
 
     Certificate one = createCertificate(cert);
     one.approve();

@@ -24,6 +24,7 @@
 package com.cloudogu.sslcontext;
 
 import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import java.math.BigInteger;
@@ -32,10 +33,18 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.Date;
 
 public class CertTestUtil {
+
+  static {
+    Security.addProvider(new BouncyCastleProvider());
+  }
+
+  private CertTestUtil() {}
 
   static KeyPair createKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -43,13 +52,13 @@ public class CertTestUtil {
     return keyPairGenerator.generateKeyPair();
   }
 
-  static X509Certificate createX509Cert(KeyPair keyPair, long start, long end) throws GeneralSecurityException {
+  static X509Certificate createX509Cert(KeyPair keyPair, Instant start, Instant end) throws GeneralSecurityException {
     // GENERATE THE X509 CERTIFICATE
     X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
     v3CertGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
     v3CertGen.setIssuerDN(new X509Principal("CN=localhost, O=hitchhiker.org, L=L, ST=il, C= c"));
-    v3CertGen.setNotBefore(new Date(start));
-    v3CertGen.setNotAfter(new Date(end));
+    v3CertGen.setNotBefore(Date.from(start));
+    v3CertGen.setNotAfter(Date.from(end));
     v3CertGen.setSubjectDN(new X509Principal("CN=localhost, O=hitchhiker.org, L=L, ST=il, C= c"));
     v3CertGen.setPublicKey(keyPair.getPublic());
     v3CertGen.setSignatureAlgorithm("SHA256WithRSAEncryption");

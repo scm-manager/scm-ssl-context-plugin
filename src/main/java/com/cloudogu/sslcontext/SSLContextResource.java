@@ -88,8 +88,7 @@ public class SSLContextResource {
     )
   )
   public Response get() {
-    Collection<Certificate> certs = store.getAll().values();
-
+    Collection<Certificate> certs = store.getAll();
     return Response.ok(mapper.map(certs)).build();
   }
 

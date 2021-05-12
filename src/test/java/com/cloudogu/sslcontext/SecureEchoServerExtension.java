@@ -23,20 +23,32 @@
  */
 package com.cloudogu.sslcontext;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import org.mapstruct.factory.Mappers;
-import sonia.scm.plugin.Extension;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
-import javax.inject.Singleton;
-import javax.net.ssl.SSLContext;
+public class SecureEchoServerExtension implements ParameterResolver, AfterEachCallback {
 
-@Extension
-public class SSLContextModule extends AbstractModule {
+  private EchoServer echoServer;
 
   @Override
-  protected void configure() {
-    bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
-    bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
+  public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    return parameterContext.getParameter().getType().equals(EchoServer.class);
+  }
+
+  @Override
+  public EchoServer resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    echoServer = new EchoServer();
+    return echoServer;
+  }
+
+  @Override
+  public void afterEach(ExtensionContext extensionContext) {
+    if (echoServer != null) {
+      echoServer.close();
+      echoServer = null;
+    }
   }
 }

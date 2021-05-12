@@ -23,15 +23,14 @@
  */
 package com.cloudogu.sslcontext;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.shiro.SecurityUtils;
-import sonia.scm.NotFoundException;
 import sonia.scm.store.DataStore;
 import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.List;
 
 @Singleton
 public class CertificateStore {
@@ -39,45 +38,20 @@ public class CertificateStore {
   private static final String STORE_NAME = "X509_certificates";
 
   private final DataStore<Certificate> store;
-  private final ApprovedCertificateBlobStore blobStore;
 
   @Inject
-  public CertificateStore(DataStoreFactory dataStoreFactory, ApprovedCertificateBlobStore blobStore) {
+  public CertificateStore(DataStoreFactory dataStoreFactory) {
     this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();
-    this.blobStore = blobStore;
   }
 
-  public Map<String, Certificate> getAll() {
+  public List<Certificate> getAll() {
     SecurityUtils.getSubject().checkPermission("sslcontext:read");
-    return store.getAll();
+    return ImmutableList.copyOf(store.getAll().values());
   }
 
   void put(Certificate certificate) {
-    Map<String, Certificate> allCerts = getAll();
-    if (!allCerts.containsKey(certificate.getFingerprint())) {
+    if (!store.getOptional(certificate.getFingerprint()).isPresent()) {
       store.put(certificate.getFingerprint(), certificate);
     }
-  }
-
-  public void approve(String id) {
-    Certificate certificate = changeStatus(id, Certificate::approve);
-    blobStore.store(certificate);
-  }
-
-  public void reject(String id) {
-    Certificate certificate = changeStatus(id, Certificate::reject);
-    blobStore.remove(certificate.getFingerprint());
-  }
-
-  private Certificate changeStatus(String id, Consumer<Certificate> consumer) {
-    SecurityUtils.getSubject().checkPermission("sslcontext:write");
-
-    Certificate certificate = store.get(id);
-    if (certificate == null) {
-      throw new NotFoundException(Certificate.class, id);
-    }
-    consumer.accept(certificate);
-    store.put(id, certificate);
-    return certificate;
   }
 }

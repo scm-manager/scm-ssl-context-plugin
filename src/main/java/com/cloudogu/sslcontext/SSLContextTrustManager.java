@@ -48,7 +48,15 @@ public class SSLContextTrustManager implements X509TrustManager {
 
   @Inject
   public SSLContextTrustManager(CertificateStore store) {
+    this(store, null);
+  }
+
+  SSLContextTrustManager(CertificateStore store, X509TrustManager delegate) {
     this.store = store;
+    this.delegate = delegate != null ? delegate : createDefaultDelegate();
+  }
+
+  private X509TrustManager createDefaultDelegate() {
     TrustManagerFactory trustManagerFactory;
     try {
       trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -56,24 +64,15 @@ public class SSLContextTrustManager implements X509TrustManager {
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
       throw new IllegalStateException("Could not find default trust manager", e);
     }
-    delegate = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+    return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
   }
 
   @Override
   public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       delegate.checkClientTrusted(x509Certificates, s);
-    } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, EXPIRED);
-      throw ex;
-    } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
-      throw ex;
-    } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, REVOKED);
-      throw ex;
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }
@@ -82,19 +81,25 @@ public class SSLContextTrustManager implements X509TrustManager {
   public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       delegate.checkServerTrusted(x509Certificates, s);
-    } catch (CertificateExpiredException ex) {
-      storeAllRejectedCerts(x509Certificates, EXPIRED);
-      throw ex;
-    } catch (CertificateNotYetValidException ex) {
-      storeAllRejectedCerts(x509Certificates, NOT_YET_VALID);
-      throw ex;
-    } catch (CertificateRevokedException ex) {
-      storeAllRejectedCerts(x509Certificates, REVOKED);
-      throw ex;
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, UNKNOWN);
+      storeAllRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
+  }
+
+  private Certificate.Error error(Throwable ex) {
+    if (ex instanceof CertificateExpiredException) {
+      return EXPIRED;
+    } else if (ex instanceof CertificateNotYetValidException) {
+      return NOT_YET_VALID;
+    } else if (ex instanceof CertificateRevokedException) {
+      return REVOKED;
+    }
+    Throwable cause = ex.getCause();
+    if (cause != null) {
+      return error(cause);
+    }
+    return UNKNOWN;
   }
 
   @Override

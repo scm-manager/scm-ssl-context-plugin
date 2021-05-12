@@ -23,7 +23,6 @@
  */
 package com.cloudogu.sslcontext;
 
-import com.google.common.io.Resources;
 import org.apache.shiro.authz.AuthorizationException;
 import org.github.sdorra.jse.ShiroExtension;
 import org.github.sdorra.jse.SubjectAware;
@@ -31,16 +30,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import sonia.scm.NotFoundException;
 import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
-import java.io.IOException;
-import java.net.URL;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
-import static com.cloudogu.sslcontext.Certificate.Status.APPROVED;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,25 +49,24 @@ class CertificateStoreTest {
 
   @BeforeEach
   void initStore() {
-    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()), blobStore);
+    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()));
   }
 
   @Nested
   @SubjectAware(value = "marvin", permissions = "sslContext:read")
-  class WithReadPermission {
+  class Permitted {
 
     @Test
     void shouldStoreCert() {
       byte[] encodedCert = "hitchhiker".getBytes();
 
-      certificateStore.put(new Certificate(encodedCert, UNKNOWN));
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(certificate);
 
-      Map<String, Certificate> allCerts = certificateStore.getAll();
-      assertThat(allCerts)
-        .hasSize(1)
-        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+      List<Certificate> allCerts = certificateStore.getAll();
+      assertThat(allCerts).containsOnly(certificate);
 
-      Certificate singleCert = allCerts.values().iterator().next();
+      Certificate singleCert = allCerts.iterator().next();
       assertThat(singleCert.getEncoded()).isEqualTo(encodedCert);
       assertThat(singleCert.getStatus()).isEqualTo(REJECTED);
       assertThat(singleCert.getError()).isEqualTo(UNKNOWN);
@@ -79,69 +75,20 @@ class CertificateStoreTest {
     @Test
     void shouldNotStoreCertIfAlreadyStored() {
       byte[] encodedCert = "hitchhiker".getBytes();
+
       Certificate cert = new Certificate(encodedCert, UNKNOWN);
       certificateStore.put(cert);
       certificateStore.put(cert);
       certificateStore.put(cert);
 
-      Map<String, Certificate> allCerts = certificateStore.getAll();
-      assertThat(allCerts)
-        .hasSize(1)
-        .containsKey("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+      assertThat(certificateStore.getAll()).containsOnly(cert);
     }
 
-  }
-
-  @Nested
-  @SubjectAware(value = "arthur", permissions = "sslContext:read,write")
-  class WithWritePermission {
-
-    @Test
-    void shouldThrowNotFoundExceptionOnApprove() {
-      assertThrows(NotFoundException.class, () -> certificateStore.approve("42"));
-    }
-
-    @Test
-    void shouldThrowNotFoundExceptionOnReject() {
-      assertThrows(NotFoundException.class, () -> certificateStore.reject("42"));
-    }
-
-    @Test
-    void shouldApproveAndRejectCertificate() throws IOException {
-      String fingerprint = "89c6032d1d457cde44478919989a4fc5758aca9d";
-      URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
-      byte[] encoded = Resources.toByteArray(resource);
-      certificateStore.put(new Certificate(encoded, UNKNOWN));
-
-      certificateStore.approve(fingerprint);
-
-      Certificate storedCert = getStoredCertById(fingerprint);
-      assertThat(storedCert.getEncoded()).isEqualTo(encoded);
-      assertThat(storedCert.getStatus()).isEqualTo(APPROVED);
-
-      certificateStore.reject(fingerprint);
-
-      storedCert = getStoredCertById(fingerprint);
-      assertThat(storedCert.getEncoded()).isEqualTo(encoded);
-      assertThat(storedCert.getStatus()).isEqualTo(REJECTED);
-    }
-  }
-
-  private Certificate getStoredCertById(String id) {
-    Certificate storedCert = certificateStore
-      .getAll()
-      .entrySet()
-      .stream()
-      .filter(e -> e.getKey().equals(id))
-      .findFirst()
-      .get()
-      .getValue();
-    return storedCert;
   }
 
   @Nested
   @SubjectAware("slarti")
-  class WithoutPermission {
+  class Denied {
 
     @Test
     void shouldNotAllowGetAll() {
