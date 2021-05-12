@@ -41,17 +41,17 @@ import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
 import static com.cloudogu.sslcontext.Certificate.Error.REVOKED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 
-public class SSLContextTrustManager implements X509TrustManager {
+public class CapturingTrustManager implements X509TrustManager {
 
   private final X509TrustManager delegate;
   private final CertificateStore store;
 
   @Inject
-  public SSLContextTrustManager(CertificateStore store) {
+  public CapturingTrustManager(CertificateStore store) {
     this(store, null);
   }
 
-  SSLContextTrustManager(CertificateStore store, X509TrustManager delegate) {
+  CapturingTrustManager(CertificateStore store, X509TrustManager delegate) {
     this.store = store;
     this.delegate = delegate != null ? delegate : createDefaultDelegate();
   }
