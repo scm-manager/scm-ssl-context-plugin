@@ -26,9 +26,6 @@ package com.cloudogu.sslcontext;
 import javax.inject.Inject;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -112,25 +109,14 @@ public class CapturingTrustManager implements X509TrustManager {
 
   private void storeRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
     Certificate mainCertificate = wrapNestedCerts(x509Certificates, error);
-//    try {
-//      Files.write(Paths.get("/home/edi/Projects/scm-ssl-context-plugin/src/test/resources/com/cloudogu/sslcontext/cert-002-expired"), x509Certificates[0].getEncoded());
-//    } catch (IOException e) {
-//      throw new IllegalStateException();
-//    }
     store.put(mainCertificate);
   }
 
   private Certificate wrapNestedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
-    Certificate mainCertificate = null;
-    if (x509Certificates.length > 1) {
-      Certificate parent = new Certificate(x509Certificates[x509Certificates.length - 1].getEncoded(), error);
-      for (int i = x509Certificates.length - 1; i > 0; i--) {
-        mainCertificate = new Certificate(parent, x509Certificates[i - 1].getEncoded(), error);
-        parent = mainCertificate;
-      }
-    } else {
-      mainCertificate = new Certificate(x509Certificates[x509Certificates.length - 1].getEncoded(), error);
+    Certificate certificate = null;
+    for (int i = x509Certificates.length - 1; i >= 0; i--) {
+      certificate = new Certificate(certificate, x509Certificates[i].getEncoded(), error);
     }
-    return mainCertificate;
+    return certificate;
   }
 }

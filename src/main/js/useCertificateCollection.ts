@@ -21,22 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.cloudogu.sslcontext;
 
-import de.otto.edison.hal.HalRepresentation;
-import de.otto.edison.hal.Links;
-import lombok.Getter;
-import lombok.Setter;
+import { useEffect, useState } from "react";
+import { CertificateCollection } from "./certificates";
+import { apiClient } from "@scm-manager/ui-components";
 
-import java.util.Set;
+const useCertificateCollection = (link: string) => {
+  const [data, setData] = useState<CertificateCollection>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | undefined>();
 
-@Getter
-@Setter
-public class CertificateCollectionDto extends HalRepresentation {
-  private final Set<CertificateDto> certificates;
+  useEffect(() => {
+    apiClient
+      .get(link)
+      .then(r => r.json())
+      .then(r => setData(r))
+      .then(() => setLoading(false))
+      .catch(setError);
+  }, [link]);
 
-  public CertificateCollectionDto(Links links, Set<CertificateDto> certificates) {
-    super(links);
-    this.certificates = certificates;
-  }
-}
+  return { data, loading, error };
+};
+
+export default useCertificateCollection;

@@ -78,7 +78,7 @@ class CertificateMapperTest {
     assertThat(dto.getIssuerDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSubjectDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSignAlg()).isEqualTo("SHA256withRSA");
-    assertThat(dto.getEmbedded().hasItem("chainCerts")).isTrue();
+    assertThat(dto.getEmbedded().hasItem("chain")).isTrue();
   }
 
   @Test
@@ -100,8 +100,8 @@ class CertificateMapperTest {
     assertThat(dto.getIssuerDN()).isEqualTo("CN=COMODO RSA Domain Validation Secure Server CA, O=COMODO CA Limited, L=Salford, ST=Greater Manchester, C=GB");
     assertThat(dto.getSubjectDN()).isEqualTo("CN=*.badssl.com, OU=PositiveSSL Wildcard, OU=Domain Control Validated");
     assertThat(dto.getSignAlg()).isEqualTo("SHA256withRSA");
-    assertThat(dto.getEmbedded().getItemsBy("chainCerts").size()).isEqualTo(1);
-    assertThat(((CertificateDto)dto.getEmbedded().getItemsBy("chainCerts").get(0)).getFingerprint()).isEqualTo("89c6032d1d457cde44478919989a4fc5758aca9d");
+    assertThat(dto.getEmbedded().getItemsBy("chain").size()).isEqualTo(1);
+    assertThat(((CertificateDto)dto.getEmbedded().getItemsBy("chain").get(0)).getFingerprint()).isEqualTo("89c6032d1d457cde44478919989a4fc5758aca9d");
   }
 
 // Prepared for the next development iteration

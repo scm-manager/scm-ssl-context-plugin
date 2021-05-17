@@ -29,30 +29,32 @@ import { Certificate, parseCommonNameFromDN } from "./certificates";
 import CertificateDetailsModal from "./CertificateDetailsModal";
 
 type Props = {
-  data: Certificate[];
+  certificates: Certificate[];
 };
 
 export const formatAsTimestamp = (date: Date) => {
   return format(new Date(date), "yyyy-MM-dd HH:mm:ss");
 };
 
-const SSLContextTable: FC<Props> = ({ data }) => {
+const SSLContextTable: FC<Props> = ({ certificates }) => {
   const [t] = useTranslation("plugins");
-  const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState<Certificate>();
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
 
   const openModal = (certificate: Certificate) => {
-    setModalData(certificate);
-    setShowModal(true);
+    setSelectedCertificate(certificate);
   };
 
   return (
     <>
-      {showModal && (
-        <CertificateDetailsModal onClose={() => setShowModal(false)} modalData={modalData} active={showModal} />
-      )}
+      {selectedCertificate ? (
+        <CertificateDetailsModal
+          onClose={() => setSelectedCertificate(undefined)}
+          certificate={selectedCertificate}
+          active={!!selectedCertificate}
+        />
+      ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-0" />
-      <Table data={data} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
+      <Table data={certificates} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
         <Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}

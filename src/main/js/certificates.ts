@@ -32,6 +32,12 @@ type CertificateError =
 
 type CertificateStatus = "REJECTED" | "APPROVED";
 
+export type CertificateCollection = HalRepresentation & {
+  _embedded: {
+    certificates: Certificate[]
+  }
+};
+
 export type Certificate = HalRepresentation & {
   error: CertificateError;
   fingerprint: string;
@@ -42,6 +48,9 @@ export type Certificate = HalRepresentation & {
   status: CertificateStatus;
   subjectDN: string;
   timestamp: Date;
+  _embedded: {
+    chain: Certificate[]
+  }
 };
 
 export const parseCommonNameFromDN = (dn: string) => {

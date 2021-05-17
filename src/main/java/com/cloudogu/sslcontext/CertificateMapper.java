@@ -62,7 +62,7 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
     List<CertificateDto> chainCerts = mapChainCerts(certificate);
 
-    CertificateDto dto = new CertificateDto(emptyLinks(), Embedded.embeddedBuilder().with("chainCerts", chainCerts).build());
+    CertificateDto dto = new CertificateDto(emptyLinks(), Embedded.embeddedBuilder().with("chain", chainCerts).build());
     if (!chainCerts.isEmpty()) {
       dto.setParent(chainCerts.get(0).getFingerprint());
     }

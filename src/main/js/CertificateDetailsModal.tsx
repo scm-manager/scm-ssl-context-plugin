@@ -31,7 +31,7 @@ import styled from "styled-components";
 type Props = {
   active: boolean;
   onClose: () => void;
-  modalData: Certificate;
+  certificate: Certificate;
 };
 
 type TreeElementProps = {
@@ -66,22 +66,19 @@ const TreeElement: FC<TreeElementProps> = ({ active, depth, onClick, children })
   );
 };
 
-const CertificateDetailsModal: FC<Props> = ({ onClose, modalData, active }) => {
+const CertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) => {
   const [t] = useTranslation("plugins");
-  const [certs, setCerts] = useState<Certificate[]>([
-    modalData,
-    ...(modalData?._embedded!.chainCerts as Certificate[])
-  ]);
-  const [selectedCert, setSelectedCert] = useState<Certificate>(modalData);
+  const chain = [certificate, ...certificate._embedded.chain].reverse();
+  const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
 
-  const body = modalData ? (
+  const body = (
     <table className="table">
       <tbody>
         <tr>
           <th>{t("scm-ssl-context-plugin.table.column.chain")}</th>
           <td>
             <ul>
-              {certs.map((cert, index) => (
+              {chain.map((cert, index) => (
                 <TreeElement onClick={() => setSelectedCert(cert)} depth={index} active={selectedCert === cert}>
                   {index}: {parseCommonNameFromDN(cert.subjectDN)}
                 </TreeElement>
@@ -123,7 +120,7 @@ const CertificateDetailsModal: FC<Props> = ({ onClose, modalData, active }) => {
         </tr>
       </tbody>
     </table>
-  ) : null;
+  );
 
   return (
     <SizedModal closeFunction={onClose} title={t("scm-ssl-context-plugin.modal.title")} body={body} active={active} />
