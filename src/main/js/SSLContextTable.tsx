@@ -39,10 +39,12 @@ export const formatAsTimestamp = (date: Date) => {
 const SSLContextTable: FC<Props> = ({ certificates }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
-
   const openModal = (certificate: Certificate) => {
     setSelectedCertificate(certificate);
   };
+
+  const timestampComparator = comparators.byKey("timestamp");
+  const initialSorted = certificates.sort((a, b) => timestampComparator(a, b) * -1);
 
   return (
     <>
@@ -54,7 +56,7 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
         />
       ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-0" />
-      <Table data={certificates} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
+      <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
         <Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}
@@ -66,7 +68,7 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
         <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
         <Column
           header={t("scm-ssl-context-plugin.table.column.timestamp")}
-          createComparator={() => comparators.byKey("timestamp")}
+          createComparator={() => timestampComparator}
           ascendingIcon="sort"
           descendingIcon="sort"
         >
