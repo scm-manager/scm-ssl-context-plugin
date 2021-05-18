@@ -59,7 +59,7 @@ class CapturingTrustManagerTest {
 
   @BeforeEach
   void setUpStore() {
-    store = new CertificateStore(new InMemoryDataStoreFactory());
+    store = new CertificateStore(new InMemoryDataStoreFactory(), new TrustedCertificatesStore(new InMemoryBlobStoreFactory()));
   }
 
   @Test
@@ -108,7 +108,7 @@ class CapturingTrustManagerTest {
   }
 
   private void assertRejected(Certificate.Error unknown) {
-    Certificate cert = store.getAll().iterator().next();
+    Certificate cert = store.getAllRejected().iterator().next();
     assertThat(cert.getStatus()).isEqualTo(REJECTED);
     assertThat(cert.getError()).isEqualTo(unknown);
   }

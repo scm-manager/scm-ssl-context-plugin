@@ -41,7 +41,6 @@ import java.util.List;
 
 import static de.otto.edison.hal.Embedded.emptyEmbedded;
 import static de.otto.edison.hal.Link.link;
-import static de.otto.edison.hal.Links.emptyLinks;
 import static de.otto.edison.hal.Links.linkingTo;
 
 @Mapper
@@ -56,13 +55,10 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
   @ObjectFactory
   CertificateDto createDto(Certificate certificate) {
-
-    // Prepared for the next development iteration
-    // Links links = createLinks(certificate);
-
+    Links links = createLinks(certificate, certificate.getFingerprint());
     List<CertificateDto> chainCerts = mapChainCerts(certificate);
 
-    CertificateDto dto = new CertificateDto(emptyLinks(), Embedded.embeddedBuilder().with("chain", chainCerts).build());
+    CertificateDto dto = new CertificateDto(links, Embedded.embeddedBuilder().with("chain", chainCerts).build());
     if (!chainCerts.isEmpty()) {
       dto.setParent(chainCerts.get(0).getFingerprint());
     }
@@ -76,7 +72,7 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
     Certificate chainCert = certificate.getParent();
     while (chainCert != null) {
-      CertificateDto chainCertDto = new CertificateDto(emptyLinks(), emptyEmbedded());
+      CertificateDto chainCertDto = new CertificateDto(createLinks(chainCert, certificate.getFingerprint()), emptyEmbedded());
       chainCertDto.setParent(certificate.getFingerprint());
       chainCertDto.setStatus(certificate.getStatus());
       chainCertDto.setError(certificate.getError());
@@ -104,22 +100,22 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     }
   }
 
-  private Links createLinks(Certificate certificate) {
+  private Links createLinks(Certificate certificate, String storedId) {
     Links.Builder linksBuilder = linkingTo();
     if (certificate.getError() == Certificate.Error.UNKNOWN) {
       if (certificate.getStatus() == Certificate.Status.REJECTED) {
-        linksBuilder.single(link("approve", createLink("approve")));
+        linksBuilder.single(link("approve", createLink("approve", storedId, certificate.getFingerprint())));
       } else {
-        linksBuilder.single(link("reject", createLink("reject")));
+        linksBuilder.single(link("reject", createLink("reject", storedId, certificate.getFingerprint())));
       }
     }
     return linksBuilder.build();
   }
 
-  private String createLink(String name) {
+  private String createLink(String name, String parentId, String id) {
     return new LinkBuilder(scmPathInfoStore.get().get(), SSLContextResource.class)
       .method(name)
-      .parameters()
+      .parameters(parentId, id)
       .href();
   }
 }

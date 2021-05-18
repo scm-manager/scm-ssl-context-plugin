@@ -24,19 +24,14 @@
 import React, { FC, useState } from "react";
 import { Column, comparators, Subtitle, Table, TextColumn } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { Certificate, parseCommonNameFromDN } from "./certificates";
-import CertificateDetailsModal from "./CertificateDetailsModal";
+import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
+import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
 
 type Props = {
-  certificates: Certificate[];
+  chain: Certificate[];
 };
 
-export const formatAsTimestamp = (date: Date) => {
-  return format(new Date(date), "yyyy-MM-dd HH:mm:ss");
-};
-
-const SSLContextTable: FC<Props> = ({ certificates }) => {
+const SSLContextRejectedTable: FC<Props> = ({ chain }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -44,12 +39,12 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
   };
 
   const timestampComparator = comparators.byKey("timestamp");
-  const initialSorted = certificates.sort((a, b) => timestampComparator(a, b) * -1);
+  const initialSorted = chain.sort((a, b) => timestampComparator(a, b) * -1);
 
   return (
     <>
       {selectedCertificate ? (
-        <CertificateDetailsModal
+        <RejectedCertificateDetailsModal
           onClose={() => setSelectedCertificate(undefined)}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
@@ -67,7 +62,7 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
         </Column>
         <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
         <Column
-          header={t("scm-ssl-context-plugin.table.column.timestamp")}
+          header={t("scm-ssl-context-plugin.table.column.timestamp.rejected")}
           createComparator={() => timestampComparator}
           ascendingIcon="sort"
           descendingIcon="sort"
@@ -82,4 +77,4 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
   );
 };
 
-export default SSLContextTable;
+export default SSLContextRejectedTable;

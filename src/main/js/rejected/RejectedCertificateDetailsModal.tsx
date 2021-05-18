@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { Button, Modal } from "@scm-manager/ui-components";
+import { apiClient, Button, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { Certificate, parseCommonNameFromDN } from "./certificates";
-import { formatAsTimestamp } from "./SSLContextTable";
+import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import styled from "styled-components";
 import classNames from "classnames";
+import { Link } from "@scm-manager/ui-types";
 
 type Props = {
   active: boolean;
@@ -75,10 +75,42 @@ const ChainEntry: FC<ChainEntryProps> = ({ certificate, depth, selected, onClick
   </StyledTreeElement>
 );
 
-const CertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) => {
+const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) => {
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
+  const [error, setError] = useState<Error>();
+
+  const manageCertificate = (link: string) => {
+    apiClient
+      .post(link)
+      // .then(() => refreshTable())
+      .catch(setError);
+  };
+
+  const renderButton = () => {
+    if (!!selectedCert._links) {
+      if (selectedCert?._links.approve) {
+        return (
+          <Button
+            label={t("scm-ssl-context-plugin.table.approve")}
+            action={() => manageCertificate((selectedCert._links.approve as Link).href)}
+            color="info"
+            type="button"
+          />
+        );
+      } else if (selectedCert?._links.reject) {
+        return (
+          <Button
+            label={t("scm-ssl-context-plugin.table.reject")}
+            action={() => manageCertificate((selectedCert._links.reject as Link).href)}
+            color="info"
+            type="button"
+          />
+        );
+      }
+    }
+  };
 
   const body = (
     <table className="table">
@@ -104,7 +136,7 @@ const CertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) =>
           <td>{selectedCert.error}</td>
         </tr>
         <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.timestamp")}</th>
+          <th>{t("scm-ssl-context-plugin.table.column.timestamp.rejected")}</th>
           <td>{formatAsTimestamp(selectedCert.timestamp)}</td>
         </tr>
         <tr>
@@ -135,9 +167,22 @@ const CertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) =>
     </table>
   );
 
+  const footer = (
+    <>
+      <ErrorNotification error={error} />
+      <Level right={renderButton()} />
+    </>
+  );
+
   return (
-    <SizedModal closeFunction={onClose} title={t("scm-ssl-context-plugin.modal.title")} body={body} active={active} />
+    <SizedModal
+      closeFunction={onClose}
+      title={t("scm-ssl-context-plugin.modal.title")}
+      body={body}
+      active={active}
+      footer={footer}
+    />
   );
 };
 
-export default CertificateDetailsModal;
+export default RejectedCertificateDetailsModal;

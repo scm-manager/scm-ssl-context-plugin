@@ -38,6 +38,7 @@ import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -64,42 +65,56 @@ class SSLContextResourceTest {
   }
 
   @Test
-  void shouldGetCerts() throws URISyntaxException {
+  void shouldGetRejectedCerts() throws URISyntaxException {
     MockHttpRequest request = MockHttpRequest
-      .get("/v2/ssl-context/")
+      .get("/v2/ssl-context/rejected")
       .contentType(SSLContextResource.MEDIA_TYPE);
 
     dispatcher.invoke(request, response);
 
     assertThat(response.getStatus()).isEqualTo(200);
 
-    verify(store, times(1)).getAll();
-    verify(collectionMapper, times(1)).map(any());
+    verify(store, times(1)).getAllRejected();
+    verify(collectionMapper, times(1)).map(any(), eq(Certificate.Status.REJECTED));
+  }
+
+  @Test
+  void shouldGetApprovedCerts() throws URISyntaxException {
+    MockHttpRequest request = MockHttpRequest
+      .get("/v2/ssl-context/approved")
+      .contentType(SSLContextResource.MEDIA_TYPE);
+
+    dispatcher.invoke(request, response);
+
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    verify(store, times(1)).getAllApproved();
+    verify(collectionMapper, times(1)).map(any(), eq(Certificate.Status.APPROVED));
   }
 
   @Test
   void shouldApproveCert() throws URISyntaxException {
     MockHttpRequest request = MockHttpRequest
-      .get("/v2/ssl-context/approve/42")
+      .post("/v2/ssl-context/approve/42/21")
       .contentType(SSLContextResource.MEDIA_TYPE);
 
     dispatcher.invoke(request, response);
 
     assertThat(response.getStatus()).isEqualTo(204);
 
-    verify(store, times(1)).approve("42");
+    verify(store, times(1)).approve("42", "21");
   }
 
   @Test
   void shouldRejectCert() throws URISyntaxException {
     MockHttpRequest request = MockHttpRequest
-      .get("/v2/ssl-context/reject/42")
+      .post("/v2/ssl-context/reject/42/21")
       .contentType(SSLContextResource.MEDIA_TYPE);
 
     dispatcher.invoke(request, response);
 
     assertThat(response.getStatus()).isEqualTo(204);
 
-    verify(store, times(1)).reject("42");
+    verify(store, times(1)).reject("42", "21");
   }
 }

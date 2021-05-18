@@ -7,7 +7,10 @@
         "chain": "Zertifikatskette",
         "commonName": "Common Name",
         "status": "Status",
-        "timestamp": "Letzter Fehlschlag",
+        "timestamp": {
+          "rejected": "Letzter Fehlschlag",
+          "approved": "Freigegeben am"
+        },
         "certificateError": "Fehler",
         "subjectDN": "Subject DN",
         "issuerDN": "Issuer DN",
@@ -17,10 +20,13 @@
         "fingerprint": "SHA1 Fingerabdruck"
       },
       "title": {
-        "rejected": "Abgelehnte Zertifikate"
+        "rejected": "Abgelehnte Zertifikate",
+        "approved": "Freigegebene Zertifikate"
       },
       "details": "Details",
-      "emptyMessage": "Keine Zertifikate gefunden."
+      "emptyMessage": "Keine Zertifikate gefunden.",
+      "approve": "Zertifikat erlauben",
+      "reject": "Zertifikat ablehnen"
     },
     "modal": {
       "title": "Zertifikat Details"

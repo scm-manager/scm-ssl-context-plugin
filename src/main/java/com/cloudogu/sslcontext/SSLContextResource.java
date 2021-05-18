@@ -36,6 +36,7 @@ import sonia.scm.web.VndMediaType;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -61,13 +62,13 @@ public class SSLContextResource {
   }
 
   @GET
-  @Path("/")
+  @Path("rejected")
   @Produces(MEDIA_TYPE)
   @Operation(
-    summary = "Get ssl context data",
-    description = "Returns the ssl context data.",
+    summary = "Get rejected X509 certificate data",
+    description = "Returns data for rejected X509 certificates.",
     tags = "SSL Context Plugin",
-    operationId = "ssl_context_get_data"
+    operationId = "ssl_context_get_rejected_data"
   )
   @ApiResponse(
     responseCode = "200",
@@ -87,13 +88,45 @@ public class SSLContextResource {
       schema = @Schema(implementation = ErrorDto.class)
     )
   )
-  public Response get() {
-    Collection<Certificate> certs = store.getAll();
-    return Response.ok(mapper.map(certs)).build();
+  public Response getAllRejected() {
+    Collection<Certificate> certs = store.getAllRejected();
+    return Response.ok(mapper.map(certs, Certificate.Status.REJECTED)).build();
   }
 
   @GET
-  @Path("/approve/{id}")
+  @Path("approved")
+  @Produces(MEDIA_TYPE)
+  @Operation(
+    summary = "Get approved X509 certificate data",
+    description = "Returns data for approved X509 certificates.",
+    tags = "SSL Context Plugin",
+    operationId = "ssl_context_get_approved_data"
+  )
+  @ApiResponse(
+    responseCode = "200",
+    description = "success",
+    content = @Content(
+      mediaType = MediaType.APPLICATION_JSON,
+      schema = @Schema(implementation = HalRepresentation.class)
+    )
+  )
+  @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
+  @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to read the data")
+  @ApiResponse(
+    responseCode = "500",
+    description = "internal server error",
+    content = @Content(
+      mediaType = VndMediaType.ERROR_TYPE,
+      schema = @Schema(implementation = ErrorDto.class)
+    )
+  )
+  public Response getAllApproved() {
+    Collection<Certificate> certs = store.getAllApproved();
+    return Response.ok(mapper.map(certs, Certificate.Status.APPROVED)).build();
+  }
+
+  @POST
+  @Path("/approve/{storedId}/{id}")
   @Produces(MEDIA_TYPE)
   @Operation(
     summary = "Approve single certificate",
@@ -119,13 +152,13 @@ public class SSLContextResource {
       schema = @Schema(implementation = ErrorDto.class)
     )
   )
-  public Response approve(@PathParam("id") String id) {
-    store.approve(id);
+  public Response approve(@PathParam("storedId") String storedId, @PathParam("id") String id) {
+    store.approve(storedId, id);
     return Response.noContent().build();
   }
 
-  @GET
-  @Path("/reject/{id}")
+  @POST
+  @Path("/reject/{storedId}/{id}")
   @Produces(MEDIA_TYPE)
   @Operation(
     summary = "Reject single approved certificate",
@@ -151,8 +184,8 @@ public class SSLContextResource {
       schema = @Schema(implementation = ErrorDto.class)
     )
   )
-  public Response reject(@PathParam("id") String id) {
-    store.reject(id);
+  public Response reject(@PathParam("storedId") String storedId, @PathParam("id") String id) {
+    store.reject(storedId, id);
     return Response.noContent().build();
   }
 }

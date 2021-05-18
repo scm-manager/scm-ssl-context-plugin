@@ -23,11 +23,11 @@
  */
 
 import { binder } from "@scm-manager/ui-extensions";
-import { Link, Links } from "@scm-manager/ui-types";
+import { Links } from "@scm-manager/ui-types";
 import React, { FC } from "react";
 import { Route } from "react-router-dom";
-import SSLContextOverview from "./SSLContextOverview";
 import SSLContextNavigation from "./SSLContextNavigation";
+import SSLContextOverview from "./SSLContextOverview";
 
 type PredicateProps = {
   links: Links;
@@ -40,7 +40,7 @@ export const predicate = ({ links }: PredicateProps) => {
 const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
   return (
     <Route path="/admin/ssl-context">
-      <SSLContextOverview link={(links.sslContext as Link).href} />
+      <SSLContextOverview links={links} />
     </Route>
   );
 };

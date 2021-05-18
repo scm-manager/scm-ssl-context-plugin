@@ -89,6 +89,10 @@ public class Certificate {
     }
   }
 
+  public void updateTimestamp() {
+    timestamp = Instant.now();
+  }
+
   public X509Certificate toX509() throws CertificateException {
     CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
     return (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(encoded));

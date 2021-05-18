@@ -51,11 +51,18 @@ public class IndexLinkEnricher implements HalEnricher {
   public void enrich(HalEnricherContext context, HalAppender appender) {
 
     if (SecurityUtils.getSubject().isPermitted("sslContext:read")) {
-      String sslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
-        .method("get")
+      String rejectedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("getAllRejected")
         .parameters()
         .href();
-      appender.appendLink("sslContext", sslContextUrl);
+      String approvedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("getAllApproved")
+        .parameters()
+        .href();
+      appender
+        .linkArrayBuilder("sslContext")
+        .append("rejected", rejectedSslContextUrl)
+        .append("approved", approvedSslContextUrl).build();
     }
   }
 }

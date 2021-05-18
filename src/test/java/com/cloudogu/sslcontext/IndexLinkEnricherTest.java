@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sonia.scm.api.v2.resources.HalAppender;
 import sonia.scm.api.v2.resources.HalEnricherContext;
@@ -38,6 +39,8 @@ import sonia.scm.api.v2.resources.ScmPathInfoStore;
 
 import java.net.URI;
 
+import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,17 +68,21 @@ class IndexLinkEnricherTest {
 
   @Test
   @SubjectAware(permissions = "sslContext:read")
-  void shouldAppendConfigLink() {
+  void shouldAppendLinks() {
+    HalAppender.LinkArrayBuilder linkArrayBuilder = mock(HalAppender.LinkArrayBuilder.class, RETURNS_SELF);
+    when(appender.linkArrayBuilder("sslContext")).thenReturn(linkArrayBuilder);
+
     when(scmPathInfoStore.get()).thenReturn(() -> URI.create("/scm/"));
     enricher.enrich(context, appender);
 
-    verify(appender).appendLink("sslContext", "/scm/v2/ssl-context/");
+    verify(linkArrayBuilder).append("rejected", "/scm/v2/ssl-context/rejected");
+    verify(linkArrayBuilder).append("approved", "/scm/v2/ssl-context/approved");
   }
 
   @Test
   void shouldNotAppendLink() {
     enricher.enrich(context, appender);
 
-    verify(appender, never()).appendLink("sslContext", "/scm/v2/ssl-config/");
+    verify(appender, never()).linkArrayBuilder("sslContext");
   }
 }

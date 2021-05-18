@@ -21,28 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React, { FC } from "react";
-import { Links } from "@scm-manager/ui-types";
-import { useTranslation } from "react-i18next";
-import { Title } from "@scm-manager/ui-components";
-import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
-import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
 
-type Props = {
-  links: Links;
-};
+package com.cloudogu.sslcontext;
 
-const SSLContextOverview: FC<Props> = ({ links }) => {
-  const [t] = useTranslation("plugins");
+import sonia.scm.store.BlobStore;
+import sonia.scm.store.BlobStoreFactory;
+import sonia.scm.store.StoreParameters;
 
-  return (
-    <>
-      <Title title={t("scm-ssl-context-plugin.title")} />
-      <SSLContextApprovedOverview links={links} />
-      <hr />
-      <SSLContextRejectedOverview links={links} />
-    </>
-  );
-};
+import java.util.HashMap;
+import java.util.Map;
 
-export default SSLContextOverview;
+public class InMemoryBlobStoreFactory implements BlobStoreFactory {
+
+  private final Map<String, BlobStore> stores = new HashMap<>();
+
+  private final BlobStore fixedStore;
+
+  public InMemoryBlobStoreFactory() {
+    this(null);
+  }
+
+  public InMemoryBlobStoreFactory(BlobStore fixedStore) {
+    this.fixedStore = fixedStore;
+  }
+
+  @Override
+  public BlobStore getStore(StoreParameters storeParameters) {
+    if (fixedStore == null) {
+      return stores.computeIfAbsent(computeKey(storeParameters), key -> new InMemoryBlobStore());
+    } else {
+      return fixedStore;
+    }
+  }
+
+  private String computeKey(StoreParameters storeParameters) {
+    if (storeParameters.getRepositoryId() == null) {
+      return storeParameters.getName();
+    } else {
+      return storeParameters.getName() + "/" + storeParameters.getRepositoryId();
+    }
+  }
+}

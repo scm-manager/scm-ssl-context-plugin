@@ -47,15 +47,19 @@ public class CertificateCollectionMapper {
     this.scmPathInfoStore = scmPathInfoStore;
   }
 
-  public HalRepresentation map(Collection<Certificate> certificates) {
+  public HalRepresentation map(Collection<Certificate> certificates, Certificate.Status status) {
     List<CertificateDto> dtos = certificates.stream().map(mapper::map).collect(Collectors.toList());
-    return new HalRepresentation(linkingTo().self(selfLink()).build(), Embedded.embedded("certificates", dtos));
+    return new HalRepresentation(linkingTo().self(selfLink(status)).build(), Embedded.embedded("chain", dtos));
   }
 
-  private String selfLink() {
+  private String selfLink(Certificate.Status status) {
     return new LinkBuilder(scmPathInfoStore.get().get(), SSLContextResource.class)
-      .method("get")
+      .method(resolveLinkMethodName(status))
       .parameters()
       .href();
+  }
+
+  private String resolveLinkMethodName(Certificate.Status status) {
+    return status == Certificate.Status.REJECTED ? "getAllRejected" : "getAllApproved";
   }
 }

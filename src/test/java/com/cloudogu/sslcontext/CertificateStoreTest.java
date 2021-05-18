@@ -30,6 +30,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import sonia.scm.store.InMemoryDataStore;
 import sonia.scm.store.InMemoryDataStoreFactory;
 
@@ -40,20 +42,24 @@ import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 
-@ExtendWith(ShiroExtension.class)
+@ExtendWith({ShiroExtension.class, MockitoExtension.class})
 class CertificateStoreTest {
+
+  @Mock
+  private TrustedCertificatesStore trustedCertificatesStore;
 
   private CertificateStore certificateStore;
 
   @BeforeEach
   void initStore() {
-    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()));
+    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()), trustedCertificatesStore);
   }
 
   @Nested
   @SubjectAware(value = "marvin", permissions = "sslContext:read")
-  class Permitted {
+  class ReadPermitted {
 
     @Test
     void shouldStoreCert() {
@@ -62,7 +68,7 @@ class CertificateStoreTest {
       Certificate certificate = new Certificate(encodedCert, UNKNOWN);
       certificateStore.put(certificate);
 
-      List<Certificate> allCerts = certificateStore.getAll();
+      List<Certificate> allCerts = certificateStore.getAllRejected();
       assertThat(allCerts).containsOnly(certificate);
 
       Certificate singleCert = allCerts.iterator().next();
@@ -82,10 +88,33 @@ class CertificateStoreTest {
       Certificate thirdReject = new Certificate(encodedCert, UNKNOWN);
       certificateStore.put(thirdReject);
 
-      assertThat(certificateStore.getAll().size()).isEqualTo(1);
-      assertThat(certificateStore.getAll().get(0).getFingerprint()).isEqualTo("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
+      assertThat(certificateStore.getAllRejected().size()).isEqualTo(1);
+      assertThat(certificateStore.getAllRejected().get(0).getFingerprint()).isEqualTo("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
     }
+  }
 
+  @Nested
+  @SubjectAware(value = "arthur", permissions = "sslContext:read,write")
+  class ReadWritePermitted {
+
+    @Test
+    void shouldApproveAndRejectCert() {
+      byte[] encodedCert = "hitchhiker".getBytes();
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(certificate);
+
+      certificateStore.approve(certificate.getFingerprint(), certificate.getFingerprint());
+
+      //TODO enable blobstore
+
+//      verify(trustedCertificatesStore).add(certificate);
+      assertThat(certificateStore.getAllApproved()).contains(certificate);
+
+      certificateStore.reject(certificate.getFingerprint(), certificate.getFingerprint());
+
+//      verify(trustedCertificatesStore).remove(certificate);
+      assertThat(certificateStore.getAllApproved()).doesNotContain(certificate);
+    }
   }
 
   @Nested
@@ -94,7 +123,7 @@ class CertificateStoreTest {
 
     @Test
     void shouldNotAllowGetAll() {
-      assertThrows(AuthorizationException.class, () -> certificateStore.getAll());
+      assertThrows(AuthorizationException.class, () -> certificateStore.getAllRejected());
     }
 
   }
