@@ -27,6 +27,7 @@ import com.google.common.hash.Hashing;
 import lombok.Getter;
 import sonia.scm.xml.XmlInstantAdapter;
 
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -42,7 +43,10 @@ import java.time.Instant;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Certificate {
 
+  @Nullable
+  private Certificate parent;
   private byte[] encoded;
+
   private Status status;
   private Error error;
   private String fingerprint;
@@ -52,6 +56,11 @@ public class Certificate {
   private Certificate() {}
 
   public Certificate(byte[] encoded, Error error) {
+    this(null, encoded, error);
+  }
+
+  public Certificate(@Nullable Certificate parent, byte[] encoded, Error error) {
+    this.parent = parent;
     this.encoded = encoded;
     this.error = error;
     this.fingerprint = createFingerprint(encoded);

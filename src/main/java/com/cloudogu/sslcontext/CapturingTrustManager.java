@@ -41,17 +41,17 @@ import static com.cloudogu.sslcontext.Certificate.Error.NOT_YET_VALID;
 import static com.cloudogu.sslcontext.Certificate.Error.REVOKED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 
-public class SSLContextTrustManager implements X509TrustManager {
+public class CapturingTrustManager implements X509TrustManager {
 
   private final X509TrustManager delegate;
   private final CertificateStore store;
 
   @Inject
-  public SSLContextTrustManager(CertificateStore store) {
+  public CapturingTrustManager(CertificateStore store) {
     this(store, null);
   }
 
-  SSLContextTrustManager(CertificateStore store, X509TrustManager delegate) {
+  CapturingTrustManager(CertificateStore store, X509TrustManager delegate) {
     this.store = store;
     this.delegate = delegate != null ? delegate : createDefaultDelegate();
   }
@@ -72,7 +72,7 @@ public class SSLContextTrustManager implements X509TrustManager {
     try {
       delegate.checkClientTrusted(x509Certificates, s);
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, error(ex));
+      storeRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }
@@ -82,7 +82,7 @@ public class SSLContextTrustManager implements X509TrustManager {
     try {
       delegate.checkServerTrusted(x509Certificates, s);
     } catch (CertificateException ex) {
-      storeAllRejectedCerts(x509Certificates, error(ex));
+      storeRejectedCerts(x509Certificates, error(ex));
       throw ex;
     }
   }
@@ -104,12 +104,19 @@ public class SSLContextTrustManager implements X509TrustManager {
 
   @Override
   public X509Certificate[] getAcceptedIssuers() {
-    return new X509Certificate[0];
+    return delegate.getAcceptedIssuers();
   }
 
-  private void storeAllRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
-    for (X509Certificate cert : x509Certificates) {
-      store.put(new Certificate(cert.getEncoded(), error));
+  private void storeRejectedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
+    Certificate mainCertificate = wrapNestedCerts(x509Certificates, error);
+    store.put(mainCertificate);
+  }
+
+  private Certificate wrapNestedCerts(X509Certificate[] x509Certificates, Certificate.Error error) throws CertificateEncodingException {
+    Certificate certificate = null;
+    for (int i = x509Certificates.length - 1; i >= 0; i--) {
+      certificate = new Certificate(certificate, x509Certificates[i].getEncoded(), error);
     }
+    return certificate;
   }
 }

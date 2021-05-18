@@ -23,6 +23,7 @@
  */
 package com.cloudogu.sslcontext;
 
+import de.otto.edison.hal.Embedded;
 import de.otto.edison.hal.Links;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -35,8 +36,12 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
+import static de.otto.edison.hal.Embedded.emptyEmbedded;
 import static de.otto.edison.hal.Link.link;
+import static de.otto.edison.hal.Links.emptyLinks;
 import static de.otto.edison.hal.Links.linkingTo;
 
 @Mapper
@@ -46,14 +51,44 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
   Provider<ScmPathInfoStore> scmPathInfoStore;
 
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "parent", ignore = true)
   public abstract CertificateDto map(Certificate certificate);
 
   @ObjectFactory
   CertificateDto createDto(Certificate certificate) {
 
-    Links links = createLinks(certificate);
-    CertificateDto dto = new CertificateDto(links);
+    // Prepared for the next development iteration
+    // Links links = createLinks(certificate);
 
+    List<CertificateDto> chainCerts = mapChainCerts(certificate);
+
+    CertificateDto dto = new CertificateDto(emptyLinks(), Embedded.embeddedBuilder().with("chain", chainCerts).build());
+    if (!chainCerts.isEmpty()) {
+      dto.setParent(chainCerts.get(0).getFingerprint());
+    }
+    setCertFieldsToDto(certificate, dto);
+
+    return dto;
+  }
+
+  private List<CertificateDto> mapChainCerts(Certificate certificate) {
+    List<CertificateDto> chainCerts = new ArrayList<>();
+
+    Certificate chainCert = certificate.getParent();
+    while (chainCert != null) {
+      CertificateDto chainCertDto = new CertificateDto(emptyLinks(), emptyEmbedded());
+      chainCertDto.setParent(certificate.getFingerprint());
+      chainCertDto.setStatus(certificate.getStatus());
+      chainCertDto.setError(certificate.getError());
+      chainCertDto.setTimestamp(certificate.getTimestamp());
+      setCertFieldsToDto(chainCert, chainCertDto);
+      chainCerts.add(chainCertDto);
+      chainCert = chainCert.getParent();
+    }
+    return chainCerts;
+  }
+
+  private void setCertFieldsToDto(Certificate certificate, CertificateDto dto) {
     try {
       X509Certificate x509Certificate = certificate.toX509();
 
@@ -67,26 +102,24 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
     } catch (CertificateException ex) {
       throw new IllegalStateException("Could not resolve stored certificate", ex);
     }
-
-    return dto;
   }
 
   private Links createLinks(Certificate certificate) {
     Links.Builder linksBuilder = linkingTo();
     if (certificate.getError() == Certificate.Error.UNKNOWN) {
       if (certificate.getStatus() == Certificate.Status.REJECTED) {
-        linksBuilder.single(link("approve", createLink("approve", certificate.getFingerprint())));
+        linksBuilder.single(link("approve", createLink("approve")));
       } else {
-        linksBuilder.single(link("reject", createLink("reject", certificate.getFingerprint())));
+        linksBuilder.single(link("reject", createLink("reject")));
       }
     }
     return linksBuilder.build();
   }
 
-  private String createLink(String name, String id) {
+  private String createLink(String name) {
     return new LinkBuilder(scmPathInfoStore.get().get(), SSLContextResource.class)
       .method(name)
-      .parameters(id)
+      .parameters()
       .href();
   }
 }

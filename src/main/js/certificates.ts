@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+import { HalRepresentation } from "@scm-manager/ui-types";
+
 type CertificateError =
   | "CERTIFICATE_UNKNOWN"
   | "CERTIFICATE_EXPIRED"
@@ -30,8 +32,14 @@ type CertificateError =
 
 type CertificateStatus = "REJECTED" | "APPROVED";
 
-export type Certificate = {
-  certificateError: CertificateError;
+export type CertificateCollection = HalRepresentation & {
+  _embedded: {
+    certificates: Certificate[]
+  }
+};
+
+export type Certificate = HalRepresentation & {
+  error: CertificateError;
   fingerprint: string;
   issuerDN: string;
   notAfter: Date;
@@ -40,4 +48,15 @@ export type Certificate = {
   status: CertificateStatus;
   subjectDN: string;
   timestamp: Date;
+  _embedded: {
+    chain: Certificate[]
+  }
+};
+
+export const parseCommonNameFromDN = (dn: string) => {
+  const commonName = dn
+    .split(",")
+    .filter((s: string) => s.includes("CN="))[0]
+    .trim();
+  return commonName.substr(3, commonName.length + 1);
 };

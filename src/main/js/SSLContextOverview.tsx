@@ -21,31 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React, { FC, useEffect, useState } from "react";
-import { apiClient, ErrorNotification, Loading, Title, Subtitle } from "@scm-manager/ui-components";
+import React, { FC } from "react";
+import { ErrorNotification, Loading, Title } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import SSLContextTable from "./SSLContextTable";
-import { HalRepresentation } from "@scm-manager/ui-types";
-import { Certificate } from "./certificates";
+import useCertificateCollection from "./useCertificateCollection";
 
 type Props = {
   link: string;
 };
 
 const SSLContextOverview: FC<Props> = ({ link }) => {
-  const [data, setData] = useState<HalRepresentation>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | undefined>();
+  const { data, error, loading } = useCertificateCollection(link);
   const [t] = useTranslation("plugins");
-
-  useEffect(() => {
-    apiClient
-      .get(link)
-      .then(r => r.json())
-      .then(r => setData(r))
-      .then(() => setLoading(false))
-      .catch(setError);
-  }, []);
 
   if (error) {
     return <ErrorNotification error={error} />;
@@ -58,8 +46,7 @@ const SSLContextOverview: FC<Props> = ({ link }) => {
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <Subtitle subtitle={t("scm-ssl-context-plugin.subtitle")} />
-      <SSLContextTable data={data?._embedded?.certificates as Certificate[]} />
+      <SSLContextTable certificates={data?._embedded.certificates || []} />
     </>
   );
 };

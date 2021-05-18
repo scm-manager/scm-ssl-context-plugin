@@ -25,58 +25,26 @@ package com.cloudogu.sslcontext;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.security.KeyStore;
 
 class SSLContextProvider implements Provider<SSLContext> {
 
-  private final SSLContextTrustManager capturingSslTrustManager;
-  private final KeyManager[] keyManagers;
+  private final CapturingTrustManager capturingSslTrustManager;
 
   @Inject
-  SSLContextProvider(SSLContextTrustManager capturingSslTrustManager) {
-    this(capturingSslTrustManager, null);
-  }
-
-  SSLContextProvider(SSLContextTrustManager trustManager, KeyManager[] keyManagers) {
+  public SSLContextProvider(CapturingTrustManager trustManager) {
     this.capturingSslTrustManager = trustManager;
-    this.keyManagers = keyManagers == null ? initializeKeyManagers() : keyManagers;
   }
 
   @Override
   public SSLContext get() {
     try {
       SSLContext sslContext = SSLContext.getInstance("TLS");
-      sslContext.init(keyManagers, new SSLContextTrustManager[]{capturingSslTrustManager}, null);
+      sslContext.init(null, new CapturingTrustManager[]{capturingSslTrustManager}, null);
       return sslContext;
     } catch (GeneralSecurityException e) {
       throw new IllegalStateException();
     }
-  }
-
-  private KeyManager[] initializeKeyManagers() {
-    String keyStoreFile = System.getProperty("javax.net.ssl.keyStore");
-    if (keyStoreFile != null) {
-      try (InputStream is = new FileInputStream(keyStoreFile)) {
-        if (is.available() > 0) {
-          KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-          char[] password = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
-          KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-          keyStore.load(is, password);
-          keyManagerFactory.init(keyStore, password);
-          return keyManagerFactory.getKeyManagers();
-        }
-      } catch (GeneralSecurityException | IOException ex) {
-        throw new IllegalStateException();
-      }
-    }
-
-    return new KeyManager[]{};
   }
 }

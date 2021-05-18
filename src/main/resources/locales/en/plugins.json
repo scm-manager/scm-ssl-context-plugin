@@ -1,14 +1,13 @@
 {
   "scm-ssl-context-plugin": {
     "title": "SSL Context",
-    "subtitle": "Certificate overview",
     "navLink": "SSL Context",
     "table": {
       "column": {
+        "chain": "Certificate Chain",
         "commonName": "Common Name",
-        "status": "Status",
-        "timestamp": "Timestamp",
-        "certificateError": "Certificate Error",
+        "timestamp": "Last failure",
+        "certificateError": "Error",
         "subjectDN": "Subject DN",
         "issuerDN": "Issuer DN",
         "notBefore": "Valid From",
@@ -16,9 +15,10 @@
         "signAlg": "Signature Algorithm",
         "fingerprint": "SHA1 Fingerprint"
       },
+      "title": {
+        "rejected": "Rejected Certificates"
+      },
       "details": "Details",
-      "rejected": "Rejected",
-      "approved": "Approved",
       "emptyMessage": "No certificates found."
     },
     "modal": {

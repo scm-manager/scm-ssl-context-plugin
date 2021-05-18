@@ -43,6 +43,7 @@ import java.time.Instant;
 
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
+import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -77,6 +78,30 @@ class CertificateMapperTest {
     assertThat(dto.getIssuerDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSubjectDN()).isEqualTo("C=c, ST=il, L=L, O=hitchhiker.org, CN=localhost");
     assertThat(dto.getSignAlg()).isEqualTo("SHA256withRSA");
+    assertThat(dto.getEmbedded().hasItem("chain")).isTrue();
+  }
+
+  @Test
+  @SuppressWarnings("UnstableApiUsage")
+  void shouldMapNestedChainCertsToDto() throws IOException {
+    URL resource1 = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+    URL resource2 = Resources.getResource("com/cloudogu/sslcontext/cert-002-expired");
+
+    byte[] parentEncoded = Resources.toByteArray(resource1);
+    Certificate parent = new Certificate(parentEncoded, UNKNOWN);
+
+    byte[] certEncoded = Resources.toByteArray(resource2);
+    Certificate certificate = new Certificate(parent, certEncoded, EXPIRED);
+
+    CertificateDto dto = mapper.map(certificate);
+
+    assertThat(dto.getParent()).isEqualTo("89c6032d1d457cde44478919989a4fc5758aca9d");
+    assertThat(dto.getFingerprint()).isEqualTo("404bbd2f1f4cc2fdeef13aabdd523ef61f1c71f3");
+    assertThat(dto.getIssuerDN()).isEqualTo("CN=COMODO RSA Domain Validation Secure Server CA, O=COMODO CA Limited, L=Salford, ST=Greater Manchester, C=GB");
+    assertThat(dto.getSubjectDN()).isEqualTo("CN=*.badssl.com, OU=PositiveSSL Wildcard, OU=Domain Control Validated");
+    assertThat(dto.getSignAlg()).isEqualTo("SHA256withRSA");
+    assertThat(dto.getEmbedded().getItemsBy("chain").size()).isEqualTo(1);
+    assertThat(((CertificateDto)dto.getEmbedded().getItemsBy("chain").get(0)).getFingerprint()).isEqualTo("89c6032d1d457cde44478919989a4fc5758aca9d");
   }
 
   @Test

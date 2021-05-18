@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SubjectAware(value = "trillian", permissions = "sslContext:read")
 @ExtendWith({ShiroExtension.class, SecureEchoServerExtension.class})
-class SSLContextTrustManagerTest {
+class CapturingTrustManagerTest {
 
   private static final char[] PASSWORD = "test".toCharArray();
 
@@ -115,7 +115,7 @@ class SSLContextTrustManagerTest {
 
   private SSLContextProvider createSSLContextProvider(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException {
     return new SSLContextProvider(
-      new SSLContextTrustManager(store, getTrustManager(trustStore))
+      new CapturingTrustManager(store, getTrustManager(trustStore))
     );
   }
 
