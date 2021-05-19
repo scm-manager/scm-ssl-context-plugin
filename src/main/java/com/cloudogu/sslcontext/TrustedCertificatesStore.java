@@ -23,21 +23,29 @@
  */
 package com.cloudogu.sslcontext;
 
-import org.apache.commons.lang.ArrayUtils;
+import sonia.scm.store.Blob;
 import sonia.scm.store.BlobStore;
 import sonia.scm.store.BlobStoreFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
-import java.io.DataInputStream;
+import javax.inject.Singleton;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.function.BiConsumer;
 
+@Singleton
 public class TrustedCertificatesStore {
 
   private static final String STORE_NAME = "Trusted_Certificates";
   private static final String NAME = "trusted_certs";
+  private static final char[] PASSWORD = "password".toCharArray();
 
   private final BlobStore store;
 
@@ -46,25 +54,55 @@ public class TrustedCertificatesStore {
     this.store = storeFactory.withName(STORE_NAME).build();
   }
 
-  X509Certificate[] getAll() {
-    try (DataInputStream is = new DataInputStream(store.get(NAME).getInputStream())) {
-      byte[] bytes = new byte[1024];
-      is.read(bytes);
-      return new X509Certificate[]{};
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not read trusted certificates", e);
+  KeyStore getKeyStore() {
+    try (InputStream is = getBlob().getInputStream()) {
+      KeyStore keyStore = KeyStore.getInstance("JKS");
+      if (is.available() > 0) {
+        keyStore.load(is, PASSWORD);
+      } else {
+        keyStore.load(null, PASSWORD);
+      }
+      return keyStore;
+    } catch (IOException | GeneralSecurityException e) {
+      //TODO
+      throw new IllegalStateException(e);
     }
   }
 
   void add(Certificate certificate) {
-    X509Certificate x509Certificate = toX509(certificate);
-    X509Certificate[] certs = (X509Certificate[]) ArrayUtils.add(getAll(), x509Certificate);
-
-//    store.get(NAME).getOutputStream().write();
+    updateKeyStore(certificate, (ks, cert) -> {
+      try {
+        ks.load(null);
+        ks.setCertificateEntry(certificate.getFingerprint(), toX509(certificate));
+      } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+        //TODO
+        throw new IllegalStateException(e);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   void remove(Certificate certificate) {
+    updateKeyStore(certificate, (ks, cert) -> {
+      try {
+        ks.deleteEntry(cert.getFingerprint());
+      } catch (KeyStoreException e) {
+        //TODO
+        throw new IllegalStateException(e);
+      }
+    });
+  }
 
+  private void updateKeyStore(Certificate certificate, BiConsumer<KeyStore, Certificate> consumer) {
+    KeyStore keyStore = getKeyStore();
+    try (OutputStream os = getBlob().getOutputStream()) {
+      consumer.accept(keyStore, certificate);
+      keyStore.store(os, PASSWORD);
+    } catch (GeneralSecurityException | IOException e) {
+      //TODO
+      throw new IllegalStateException(e);
+    }
   }
 
   private X509Certificate toX509(Certificate certificate) {
@@ -72,7 +110,11 @@ public class TrustedCertificatesStore {
       return certificate.toX509();
     } catch (CertificateException e) {
       //TODO
-      throw new WebApplicationException(e);
+      throw new IllegalStateException(e);
     }
+  }
+
+  private Blob getBlob() {
+    return store.getOptional(NAME).orElseGet(() -> store.create(NAME));
   }
 }

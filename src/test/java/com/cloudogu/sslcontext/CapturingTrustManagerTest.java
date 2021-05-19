@@ -71,7 +71,7 @@ class CapturingTrustManagerTest {
 
     echoServer.start(keyStore, PASSWORD);
 
-    SSLContextProvider sslContextProvider = createSSLContextProvider();
+    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
     echoServer.send(sslContextProvider, "hi");
 
     assertRejected(UNKNOWN);

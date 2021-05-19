@@ -79,7 +79,7 @@ class CertificateCollectionMapperTest {
     HalRepresentation dto = collectionMapper.map(ImmutableList.of(one, two), REJECTED);
 
     assertThat(dto.getLinks().getLinkBy("self")).hasValueSatisfying(link -> {
-      assertThat(link.getHref()).isEqualTo("scm/api/v2/ssl-context/");
+      assertThat(link.getHref()).isEqualTo("scm/api/v2/ssl-context/rejected");
     });
     assertThat(dto.getEmbedded().hasItem("chain")).isTrue();
 

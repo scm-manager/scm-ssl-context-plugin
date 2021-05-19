@@ -22,58 +22,17 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { apiClient, Button, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
+import { apiClient, Button, ErrorNotification, Level } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
-import styled from "styled-components";
-import classNames from "classnames";
+import { Certificate, formatAsTimestamp } from "../certificates";
 import { Link } from "@scm-manager/ui-types";
+import { ChainEntry, SizedModal } from "../approved/ApprovedCertificateDetailsModal";
 
 type Props = {
   active: boolean;
   onClose: () => void;
   certificate: Certificate;
 };
-
-const SizedModal = styled(Modal)`
-  .modal-card {
-    width: 95%;
-    height: auto;
-  }
-
-  th {
-    width: 20%;
-  }
-`;
-
-const StyledTreeElement = styled.li<{ depth: number }>`
-  margin-left: ${props => props.depth}rem;
-  width: fit-content;
-`;
-
-const ChainButton = styled(Button)`
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0;
-  text-decoration: none;
-  cursor: pointer;
-`;
-
-type ChainEntryProps = {
-  certificate: Certificate;
-  depth: number;
-  selected: boolean;
-  onClick: () => void;
-};
-
-const ChainEntry: FC<ChainEntryProps> = ({ certificate, depth, selected, onClick }) => (
-  <StyledTreeElement depth={depth * 3} onClick={onClick}>
-    <ChainButton icon="certificate" className={classNames("is-inverted", { "is-link": selected })}>
-      {parseCommonNameFromDN(certificate.subjectDN)}
-    </ChainButton>
-  </StyledTreeElement>
-);
 
 const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) => {
   const [t] = useTranslation("plugins");
@@ -99,80 +58,69 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
             type="button"
           />
         );
-      } else if (selectedCert?._links.reject) {
-        return (
-          <Button
-            label={t("scm-ssl-context-plugin.table.reject")}
-            action={() => manageCertificate((selectedCert._links.reject as Link).href)}
-            color="info"
-            type="button"
-          />
-        );
       }
     }
   };
 
   const body = (
-    <table className="table">
-      <tbody>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.chain")}</th>
-          <td>
-            <ul>
-              {chain.map((cert, index) => (
-                <ChainEntry
-                  key={cert.fingerprint}
-                  certificate={cert}
-                  onClick={() => setSelectedCert(cert)}
-                  depth={index}
-                  selected={selectedCert === cert}
-                />
-              ))}
-            </ul>
-          </td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.certificateError")}</th>
-          <td>{selectedCert.error}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.timestamp.rejected")}</th>
-          <td>{formatAsTimestamp(selectedCert.timestamp)}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.subjectDN")}</th>
-          <td>{selectedCert.subjectDN}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.issuerDN")}</th>
-          <td>{selectedCert.issuerDN}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.notBefore")}</th>
-          <td>{formatAsTimestamp(selectedCert.notBefore)}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.notAfter")}</th>
-          <td>{formatAsTimestamp(selectedCert.notAfter)}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.signAlg")}</th>
-          <td>{selectedCert.signAlg}</td>
-        </tr>
-        <tr>
-          <th>{t("scm-ssl-context-plugin.table.column.fingerprint")}</th>
-          <td>{selectedCert.fingerprint}</td>
-        </tr>
-      </tbody>
-    </table>
-  );
-
-  const footer = (
     <>
       <ErrorNotification error={error} />
-      <Level right={renderButton()} />
+      <table className="table">
+        <tbody>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.chain")}</th>
+            <td>
+              <ul>
+                {chain.map((cert, index) => (
+                  <ChainEntry
+                    key={cert.fingerprint}
+                    certificate={cert}
+                    onClick={() => setSelectedCert(cert)}
+                    depth={index}
+                    selected={selectedCert === cert}
+                  />
+                ))}
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.certificateError")}</th>
+            <td>{selectedCert.error}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.timestamp.rejected")}</th>
+            <td>{formatAsTimestamp(selectedCert.timestamp)}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.subjectDN")}</th>
+            <td>{selectedCert.subjectDN}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.issuerDN")}</th>
+            <td>{selectedCert.issuerDN}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.notBefore")}</th>
+            <td>{formatAsTimestamp(selectedCert.notBefore)}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.notAfter")}</th>
+            <td>{formatAsTimestamp(selectedCert.notAfter)}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.signAlg")}</th>
+            <td>{selectedCert.signAlg}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.fingerprint")}</th>
+            <td>{selectedCert.fingerprint}</td>
+          </tr>
+        </tbody>
+      </table>
     </>
   );
+
+  const footer = <Level right={renderButton()} />;
 
   return (
     <SizedModal

@@ -105,14 +105,12 @@ class CertificateStoreTest {
 
       certificateStore.approve(certificate.getFingerprint(), certificate.getFingerprint());
 
-      //TODO enable blobstore
-
-//      verify(trustedCertificatesStore).add(certificate);
+      verify(trustedCertificatesStore).add(certificate);
       assertThat(certificateStore.getAllApproved()).contains(certificate);
 
       certificateStore.reject(certificate.getFingerprint(), certificate.getFingerprint());
 
-//      verify(trustedCertificatesStore).remove(certificate);
+      verify(trustedCertificatesStore).remove(certificate);
       assertThat(certificateStore.getAllApproved()).doesNotContain(certificate);
     }
   }

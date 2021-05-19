@@ -30,6 +30,7 @@ import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.security.KeyStore;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -60,6 +61,10 @@ public class CertificateStore {
     return ImmutableList.copyOf(approvedCertStore.getAll().values());
   }
 
+  public KeyStore getKeyStore() {
+    return trustedCertificatesStore.getKeyStore();
+  }
+
   void put(Certificate certificate) {
     rejectedCertStore.put(certificate.getFingerprint(), certificate);
   }
@@ -69,14 +74,14 @@ public class CertificateStore {
       certificate.approve();
       certificate.updateTimestamp();
       approvedCertStore.put(certificate.getFingerprint(), certificate);
-//      trustedCertificatesStore.add(certificate);
+      trustedCertificatesStore.add(certificate);
     });
   }
 
   public void reject(String storedId, String fingerprint) {
     manageCertificates(storedId, fingerprint, certificate -> {
       approvedCertStore.remove(certificate.getFingerprint());
-//      trustedCertificatesStore.remove(certificate);
+      trustedCertificatesStore.remove(certificate);
     });
   }
 

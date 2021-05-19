@@ -23,45 +23,39 @@
  */
 package com.cloudogu.sslcontext;
 
-import sonia.scm.store.Blob;
-import sonia.scm.store.BlobStore;
-import sonia.scm.store.BlobStoreFactory;
+import com.google.common.io.Resources;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
+import java.net.URL;
+import java.security.KeyStore;
 
-@Singleton
-class ApprovedCertificateBlobStore {
+import static org.assertj.core.api.Assertions.assertThat;
 
-  private static final String STORE_NAME = "X509_Certificate_Blobs";
+class TrustedCertificatesStoreTest {
 
-  private final BlobStore blobStore;
+  private TrustedCertificatesStore store;
 
-  @Inject
-  public ApprovedCertificateBlobStore(BlobStoreFactory blobStoreFactory) {
-    this.blobStore = blobStoreFactory.withName(STORE_NAME).build();;
+  @BeforeEach
+  void initStore() {
+    store = new TrustedCertificatesStore(new InMemoryBlobStoreFactory(new InMemoryBlobStore()));
   }
 
-  public List<Blob> getAll() {
-    return blobStore.getAll();
+  @Test
+  void shouldGetDefaultKeyStore() {
+    KeyStore keyStore = store.getKeyStore();
+    assertThat(keyStore.getProvider().entrySet().size()).isEqualTo(146);
   }
 
-  void store(Certificate certificate) {
-    Blob blob = blobStore.create(certificate.getFingerprint());
+  @Test
+  @SuppressWarnings("UnstableApiUsage")
+  void shouldAddTrustedCertToKeyStore() throws IOException {
+    URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+    byte[] encoded = Resources.toByteArray(resource);
+    store.add(new Certificate(null, encoded, Certificate.Error.UNKNOWN));
 
-    try (OutputStream os = blob.getOutputStream()) {
-      os.write(certificate.getEncoded());
-      os.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    KeyStore keyStore = store.getKeyStore();
+    assertThat(keyStore.getProvider().entrySet().size()).isEqualTo(147);
   }
-
-  void remove(String id) {
-    blobStore.remove(id);
-  }
-
 }

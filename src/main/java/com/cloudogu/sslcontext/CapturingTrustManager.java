@@ -60,7 +60,7 @@ public class CapturingTrustManager implements X509TrustManager {
     TrustManagerFactory trustManagerFactory;
     try {
       trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-      trustManagerFactory.init((KeyStore) null);
+      trustManagerFactory.init(store.getKeyStore());
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
       throw new IllegalStateException("Could not find default trust manager", e);
     }
