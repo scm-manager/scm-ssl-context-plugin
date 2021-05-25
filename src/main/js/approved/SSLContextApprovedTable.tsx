@@ -29,9 +29,10 @@ import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
 type Props = {
   chain: Certificate[];
+  refresh: () => void;
 };
 
-const SSLContextApprovedTable: FC<Props> = ({ chain }) => {
+const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -48,6 +49,7 @@ const SSLContextApprovedTable: FC<Props> = ({ chain }) => {
           onClose={() => setSelectedCertificate(undefined)}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
+          refresh={refresh}
         />
       ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.approved")} className="mb-0" />

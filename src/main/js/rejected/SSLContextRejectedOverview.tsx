@@ -24,17 +24,16 @@
 import React, { FC } from "react";
 import { ErrorNotification, Loading } from "@scm-manager/ui-components";
 import SSLContextRejectedTable from "./SSLContextRejectedTable";
-import useCertificateCollection from "../useCertificateCollection";
-import { Certificate, getLinkByName } from "../certificates";
-import { Links } from "@scm-manager/ui-types";
+import { Certificate, CertificateCollection } from "../certificates";
 
 type Props = {
-  links: Links;
+  data?: CertificateCollection;
+  loading: boolean;
+  error?: Error;
+  refresh: () => void;
 };
 
-const SSLContextRejectedOverview: FC<Props> = ({ links }) => {
-  const { data, error, loading } = useCertificateCollection(getLinkByName(links, "rejected"));
-
+const SSLContextRejectedOverview: FC<Props> = ({ data, loading, error, refresh }) => {
   if (error) {
     return <ErrorNotification error={error} />;
   }
@@ -43,7 +42,7 @@ const SSLContextRejectedOverview: FC<Props> = ({ links }) => {
     return <Loading />;
   }
 
-  return <SSLContextRejectedTable chain={(data?._embedded.chain as Certificate[]) || []} />;
+  return <SSLContextRejectedTable chain={(data?._embedded.chain as Certificate[]) || []} refresh={refresh} />;
 };
 
 export default SSLContextRejectedOverview;

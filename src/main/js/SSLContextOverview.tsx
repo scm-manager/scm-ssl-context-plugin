@@ -27,6 +27,8 @@ import { useTranslation } from "react-i18next";
 import { Title } from "@scm-manager/ui-components";
 import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
 import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
+import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
+import { getLinkByName } from "./certificates";
 
 type Props = {
   links: Links;
@@ -34,13 +36,20 @@ type Props = {
 
 const SSLContextOverview: FC<Props> = ({ links }) => {
   const [t] = useTranslation("plugins");
+  const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
+  const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
+
+  const refreshAllData = () => {
+    rejectedResult.refresh();
+    approvedResult.refresh();
+  };
 
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <SSLContextApprovedOverview links={links} />
+      <SSLContextApprovedOverview {...approvedResult} refresh={refreshAllData} />
       <hr />
-      <SSLContextRejectedOverview links={links} />
+      <SSLContextRejectedOverview {...rejectedResult} refresh={refreshAllData} />
     </>
   );
 };

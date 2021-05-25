@@ -26,10 +26,18 @@ import { useEffect, useState } from "react";
 import { CertificateCollection } from "./certificates";
 import { apiClient } from "@scm-manager/ui-components";
 
+export type CertificateCollectionResult = {
+  data?: CertificateCollection;
+  loading: boolean;
+  error?: Error;
+  refresh: () => void;
+};
+
 const useCertificateCollection = (link: string) => {
   const [data, setData] = useState<CertificateCollection>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | undefined>();
+  const [shouldRefresh, setShouldRefresh] = useState(0);
 
   useEffect(() => {
     apiClient
@@ -38,9 +46,9 @@ const useCertificateCollection = (link: string) => {
       .then(r => setData(r))
       .then(() => setLoading(false))
       .catch(setError);
-  }, [link]);
+  }, [link, shouldRefresh]);
 
-  return { data, loading, error };
+  return { data, loading, error, refresh: () => setShouldRefresh(shouldRefresh + 1) };
 };
 
 export default useCertificateCollection;

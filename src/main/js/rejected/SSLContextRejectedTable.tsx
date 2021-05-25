@@ -29,9 +29,10 @@ import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
 
 type Props = {
   chain: Certificate[];
+  refresh: () => void;
 };
 
-const SSLContextRejectedTable: FC<Props> = ({ chain }) => {
+const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -48,6 +49,7 @@ const SSLContextRejectedTable: FC<Props> = ({ chain }) => {
           onClose={() => setSelectedCertificate(undefined)}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
+          refresh={refresh}
         />
       ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-0" />

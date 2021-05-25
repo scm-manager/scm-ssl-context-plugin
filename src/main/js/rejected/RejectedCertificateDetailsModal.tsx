@@ -32,9 +32,10 @@ type Props = {
   active: boolean;
   onClose: () => void;
   certificate: Certificate;
+  refresh: () => void;
 };
 
-const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, active }) => {
+const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, active, refresh }) => {
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
@@ -43,7 +44,8 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const manageCertificate = (link: string) => {
     apiClient
       .post(link)
-      // .then(() => refreshTable())
+      .then(() => onClose())
+      .then(() => refresh())
       .catch(setError);
   };
 

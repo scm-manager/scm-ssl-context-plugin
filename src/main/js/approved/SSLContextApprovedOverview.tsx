@@ -23,18 +23,17 @@
  */
 import React, { FC } from "react";
 import { ErrorNotification, Loading } from "@scm-manager/ui-components";
-import useCertificateCollection from "../useCertificateCollection";
-import { Certificate, getLinkByName } from "../certificates";
-import { Links } from "@scm-manager/ui-types";
+import { Certificate, CertificateCollection } from "../certificates";
 import SSLContextApprovedTable from "./SSLContextApprovedTable";
 
 type Props = {
-  links: Links;
+  data?: CertificateCollection;
+  loading: boolean;
+  error?: Error;
+  refresh: () => void;
 };
 
-const SSLContextApprovedOverview: FC<Props> = ({ links }) => {
-  const { data, error, loading } = useCertificateCollection(getLinkByName(links, "approved"));
-
+const SSLContextApprovedOverview: FC<Props> = ({ data, error, loading, refresh }) => {
   if (error) {
     return <ErrorNotification error={error} />;
   }
@@ -43,7 +42,7 @@ const SSLContextApprovedOverview: FC<Props> = ({ links }) => {
     return <Loading />;
   }
 
-  return <SSLContextApprovedTable chain={(data?._embedded.chain as Certificate[]) || []} />;
+  return <SSLContextApprovedTable chain={(data?._embedded.chain as Certificate[]) || []} refresh={refresh} />;
 };
 
 export default SSLContextApprovedOverview;
