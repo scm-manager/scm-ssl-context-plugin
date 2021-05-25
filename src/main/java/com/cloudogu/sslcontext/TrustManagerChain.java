@@ -77,6 +77,24 @@ class TrustManagerChain implements X509TrustManager {
   public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       for (X509TrustManager trustManager : platformTrustManagers) {
+        trustManager.checkClientTrusted(x509Certificates, s);
+      }
+    } catch (CertificateException platformException) {
+      try {
+        for (X509TrustManager trustManager : storedTrustManagers) {
+          trustManager.checkClientTrusted(x509Certificates, s);
+        }
+      } catch (Exception storeException) {
+        LOG.trace("store trust manager returns error", storeException);
+        throw platformException;
+      }
+    }
+  }
+
+  @Override
+  public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+    try {
+      for (X509TrustManager trustManager : platformTrustManagers) {
         trustManager.checkServerTrusted(x509Certificates, s);
       }
     } catch (CertificateException platformException) {
@@ -89,11 +107,6 @@ class TrustManagerChain implements X509TrustManager {
         throw platformException;
       }
     }
-  }
-
-  @Override
-  public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-    // TODO
   }
 
   @Override

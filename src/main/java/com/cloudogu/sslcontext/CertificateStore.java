@@ -36,8 +36,8 @@ import java.util.function.Consumer;
 @Singleton
 public class CertificateStore {
 
-  private static final String REJECTED_STORE_NAME = "Rejected_X509_certificates";
-  private static final String APPROVED_STORE_NAME = "Approved_X509_certificates";
+  private static final String REJECTED_STORE_NAME = "rejected-certificates";
+  private static final String APPROVED_STORE_NAME = "approved-certificates";
 
   private final DataStore<Certificate> rejectedCertStore;
   private final DataStore<Certificate> approvedCertStore;
