@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,19 +44,21 @@ class TrustedCertificatesStoreTest {
   }
 
   @Test
-  void shouldGetDefaultKeyStore() {
+  void shouldAddTrustedCertToKeyStore() throws IOException, KeyStoreException {
+    Certificate certificate = readCertificate("com/cloudogu/sslcontext/cert-001");
     KeyStore keyStore = store.getKeyStore();
-    assertThat(keyStore.getProvider().entrySet().size()).isEqualTo(146);
+
+    assertThat(keyStore.containsAlias(certificate.getFingerprint())).isFalse();
+
+    store.add(certificate);
+
+    assertThat(keyStore.containsAlias(certificate.getFingerprint())).isTrue();
   }
 
-  @Test
   @SuppressWarnings("UnstableApiUsage")
-  void shouldAddTrustedCertToKeyStore() throws IOException {
-    URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+  private Certificate readCertificate(String path) throws IOException {
+    URL resource = Resources.getResource(path);
     byte[] encoded = Resources.toByteArray(resource);
-    store.add(new Certificate(null, encoded, Certificate.Error.UNKNOWN));
-
-    KeyStore keyStore = store.getKeyStore();
-    assertThat(keyStore.getProvider().entrySet().size()).isEqualTo(147);
+    return new Certificate(null, encoded, Certificate.Error.UNKNOWN);
   }
 }

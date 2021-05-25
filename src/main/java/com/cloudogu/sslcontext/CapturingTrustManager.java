@@ -24,11 +24,8 @@
 package com.cloudogu.sslcontext;
 
 import javax.inject.Inject;
-import javax.net.ssl.TrustManagerFactory;
+import javax.inject.Named;
 import javax.net.ssl.X509TrustManager;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -47,24 +44,9 @@ public class CapturingTrustManager implements X509TrustManager {
   private final CertificateStore store;
 
   @Inject
-  public CapturingTrustManager(CertificateStore store) {
-    this(store, null);
-  }
-
-  CapturingTrustManager(CertificateStore store, X509TrustManager delegate) {
+  public CapturingTrustManager(CertificateStore store, @Named("chain") X509TrustManager delegate) {
     this.store = store;
-    this.delegate = delegate != null ? delegate : createDefaultDelegate();
-  }
-
-  private X509TrustManager createDefaultDelegate() {
-    TrustManagerFactory trustManagerFactory;
-    try {
-      trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-      trustManagerFactory.init(store.getKeyStore());
-    } catch (NoSuchAlgorithmException | KeyStoreException e) {
-      throw new IllegalStateException("Could not find default trust manager", e);
-    }
-    return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+    this.delegate = delegate;
   }
 
   @Override

@@ -35,34 +35,47 @@ import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @Singleton
-public class TrustedCertificatesStore {
+class TrustedCertificatesStore {
 
   private static final String STORE_NAME = "Trusted_Certificates";
   private static final String NAME = "trusted_certs";
   private static final char[] PASSWORD = "password".toCharArray();
 
-  private final BlobStore store;
+  private final BlobStore blobStore;
+  private final KeyStore keyStore;
+
+  private final List<Consumer<KeyStore>> listeners = new ArrayList<>();
 
   @Inject
-  public TrustedCertificatesStore(BlobStoreFactory storeFactory) {
-    this.store = storeFactory.withName(STORE_NAME).build();
+  TrustedCertificatesStore(BlobStoreFactory storeFactory) {
+    this.blobStore = storeFactory.withName(STORE_NAME).build();
+    this.keyStore = loadKeyStore();
   }
 
-  KeyStore getKeyStore() {
-    try (InputStream is = getBlob().getInputStream()) {
-      KeyStore keyStore = KeyStore.getInstance("JKS");
-      if (is.available() > 0) {
-        keyStore.load(is, PASSWORD);
+  public void onChange(Consumer<KeyStore> listener) {
+    listeners.add(listener);
+  }
+
+  private KeyStore loadKeyStore() {
+    try {
+      KeyStore ks = KeyStore.getInstance("JKS");
+      Blob blob = getBlob();
+      if (blob.getSize() > 0) {
+        try (InputStream is = blob.getInputStream()) {
+          ks.load(is, PASSWORD);
+        }
       } else {
-        keyStore.load(null, PASSWORD);
+        ks.load(null, PASSWORD);
       }
-      return keyStore;
+      return ks;
     } catch (IOException | GeneralSecurityException e) {
       //TODO
       throw new IllegalStateException(e);
@@ -72,13 +85,10 @@ public class TrustedCertificatesStore {
   void add(Certificate certificate) {
     updateKeyStore(certificate, (ks, cert) -> {
       try {
-        ks.load(null);
         ks.setCertificateEntry(certificate.getFingerprint(), toX509(certificate));
-      } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+      } catch (KeyStoreException e) {
         //TODO
         throw new IllegalStateException(e);
-      } catch (IOException e) {
-        e.printStackTrace();
       }
     });
   }
@@ -95,10 +105,10 @@ public class TrustedCertificatesStore {
   }
 
   private void updateKeyStore(Certificate certificate, BiConsumer<KeyStore, Certificate> consumer) {
-    KeyStore keyStore = getKeyStore();
     try (OutputStream os = getBlob().getOutputStream()) {
       consumer.accept(keyStore, certificate);
       keyStore.store(os, PASSWORD);
+      listeners.forEach(c -> c.accept(keyStore));
     } catch (GeneralSecurityException | IOException e) {
       //TODO
       throw new IllegalStateException(e);
@@ -115,6 +125,10 @@ public class TrustedCertificatesStore {
   }
 
   private Blob getBlob() {
-    return store.getOptional(NAME).orElseGet(() -> store.create(NAME));
+    return blobStore.getOptional(NAME).orElseGet(() -> blobStore.create(NAME));
+  }
+
+  public KeyStore getKeyStore() {
+    return keyStore;
   }
 }

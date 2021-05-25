@@ -30,7 +30,6 @@ import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.security.KeyStore;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -59,10 +58,6 @@ public class CertificateStore {
   public List<Certificate> getAllApproved() {
     SecurityUtils.getSubject().checkPermission("sslcontext:read");
     return ImmutableList.copyOf(approvedCertStore.getAll().values());
-  }
-
-  public KeyStore getKeyStore() {
-    return trustedCertificatesStore.getKeyStore();
   }
 
   void put(Certificate certificate) {
