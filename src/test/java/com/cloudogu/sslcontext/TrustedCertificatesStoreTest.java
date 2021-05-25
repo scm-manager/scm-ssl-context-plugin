@@ -55,6 +55,18 @@ class TrustedCertificatesStoreTest {
     assertThat(keyStore.containsAlias(certificate.getFingerprint())).isTrue();
   }
 
+  @Test
+  void shouldRemoveTrustedCertFromKeyStore() throws IOException, KeyStoreException {
+    Certificate certificate = readCertificate("com/cloudogu/sslcontext/cert-001");
+    KeyStore keyStore = store.getKeyStore();
+
+    store.add(certificate);
+    assertThat(keyStore.containsAlias(certificate.getFingerprint())).isTrue();
+
+    store.remove(certificate);
+    assertThat(keyStore.containsAlias(certificate.getFingerprint())).isFalse();
+  }
+
   @SuppressWarnings("UnstableApiUsage")
   private Certificate readCertificate(String path) throws IOException {
     URL resource = Resources.getResource(path);

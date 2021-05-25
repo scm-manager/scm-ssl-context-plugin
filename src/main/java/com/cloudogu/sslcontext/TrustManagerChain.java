@@ -24,6 +24,7 @@
 
 package com.cloudogu.sslcontext;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static sonia.scm.ContextEntry.ContextBuilder.noContext;
 
 @Named("chain")
 class TrustManagerChain implements X509TrustManager {
@@ -62,7 +65,7 @@ class TrustManagerChain implements X509TrustManager {
       trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       trustManagerFactory.init(keyStore);
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
-      throw new IllegalStateException("Could not find default trust manager", e);
+      throw new com.cloudogu.sslcontext.CertificateException(noContext(), "Could not find default trust manager", e);
     }
 
     List<X509TrustManager> trustManagers = new ArrayList<>();
@@ -103,7 +106,7 @@ class TrustManagerChain implements X509TrustManager {
           trustManager.checkServerTrusted(x509Certificates, s);
         }
       } catch (Exception storeException) {
-        LOG.trace("store trustmanager returns error", storeException);
+        LOG.trace("store trust manager returns error", storeException);
         throw platformException;
       }
     }
@@ -111,7 +114,9 @@ class TrustManagerChain implements X509TrustManager {
 
   @Override
   public X509Certificate[] getAcceptedIssuers() {
-    // TODO
-    return new X509Certificate[0];
+    return (X509Certificate[]) ArrayUtils.addAll(
+      platformTrustManagers.iterator().next().getAcceptedIssuers(),
+      storedTrustManagers.iterator().next().getAcceptedIssuers()
+    );
   }
 }
