@@ -70,6 +70,14 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
       <table className="table">
         <tbody>
           <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.certificateError")}</th>
+            <td>{selectedCert.error}</td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.timestamp.rejected")}</th>
+            <td>{formatAsTimestamp(selectedCert.timestamp)}</td>
+          </tr>
+          <tr>
             <th>{t("scm-ssl-context-plugin.table.column.chain")}</th>
             <td>
               <ul>
@@ -85,14 +93,7 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
               </ul>
             </td>
           </tr>
-          <tr>
-            <th>{t("scm-ssl-context-plugin.table.column.certificateError")}</th>
-            <td>{selectedCert.error}</td>
-          </tr>
-          <tr>
-            <th>{t("scm-ssl-context-plugin.table.column.timestamp.rejected")}</th>
-            <td>{formatAsTimestamp(selectedCert.timestamp)}</td>
-          </tr>
+
           <tr>
             <th>{t("scm-ssl-context-plugin.table.column.subjectDN")}</th>
             <td>{selectedCert.subjectDN}</td>
