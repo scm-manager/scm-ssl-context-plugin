@@ -7,8 +7,8 @@
         "chain": "Certificate Chain",
         "commonName": "Common Name",
         "timestamp": {
-          "rejected": "Last failure",
-          "approved": "Approved on"
+          "rejected": "Last Failure",
+          "approved": "Approved On"
         },
         "certificateError": "Error",
         "subjectDN": "Subject DN",
