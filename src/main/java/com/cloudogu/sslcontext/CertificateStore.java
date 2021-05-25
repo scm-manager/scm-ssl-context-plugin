@@ -65,7 +65,7 @@ public class CertificateStore {
   }
 
   public void approve(String storedId, String fingerprint) {
-    manageCertificates(storedId, fingerprint, certificate -> {
+    manageCertificates(storedId, fingerprint, rejectedCertStore, certificate -> {
       certificate.approve();
       certificate.updateTimestamp();
       approvedCertStore.put(certificate.getFingerprint(), certificate);
@@ -74,15 +74,15 @@ public class CertificateStore {
   }
 
   public void reject(String storedId, String fingerprint) {
-    manageCertificates(storedId, fingerprint, certificate -> {
+    manageCertificates(storedId, fingerprint, approvedCertStore, certificate -> {
       approvedCertStore.remove(certificate.getFingerprint());
       trustedCertificatesStore.remove(certificate);
     });
   }
 
-  private void manageCertificates(String storedId, String fingerprint, Consumer<Certificate> consumer) {
+  private void manageCertificates(String storedId, String fingerprint, DataStore<Certificate> store, Consumer<Certificate> consumer) {
     SecurityUtils.getSubject().checkPermission("sslContext:write");
-    Certificate certificate = rejectedCertStore.get(storedId);
+    Certificate certificate = store.get(storedId);
     while (certificate != null) {
       if (fingerprint.equals(certificate.getFingerprint())) {
         consumer.accept(certificate);
