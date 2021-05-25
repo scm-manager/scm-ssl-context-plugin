@@ -39,5 +39,11 @@
         "description": "Darf SSL Kontext Informationen lesen"
       }
     }
+  },
+  "errors": {
+    "FySYQ3xiD1": {
+      "displayName": "Zertifikatsfehler",
+      "description": "Beim Verwalten oder Validieren Ihrer Zertifikate ist ein Fehler aufgetreten. Prüfen Sie die Server Logs für mehr Informationen."
+    }
   }
 }
