@@ -21,6 +21,6 @@ The second table contains all certificates that have been rejected by the server
 There can be very different reasons for the rejection. If a certificate was rejected by mistake, it has to be approved.
 However, this only works for certificates that are unknown to the server.
 Other reasons for rejection, such as `expired` or `revoked`, actually make a certificate invalid and therefore cannot be approved.
-In the detail view of a certificate, the entire certificate chain can be checked and approved in addition to the actual certificate.
+In the detailed view of a certificate, certificates from the certificate chain can be checked and released in addition to the server certificate.
 
 ![Certificate modal](assets/rejected_certificate_modal.png)

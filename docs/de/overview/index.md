@@ -21,6 +21,6 @@ In der zweiten Tabelle finden sich alle Zertifikate, die vom Server abgelehnt wu
 Dabei kann es sehr unterschiedliche Gründe für die Ablehnung geben. Wurde ein Zertifikat fälschlicherweise abgelehnt, kann eine Freigabe erteilt werden. 
 Dies geht jedoch nur für Zertifikate, die für den Server unbekannt sind. 
 Weitere Ablehnungsgründe wie zum Beispiel `abgelaufen` oder `zurückgezogen` machen ein Zertifikat tatsächlich ungültig und können daher nicht freigegeben werden. 
-In der Detailansicht eines Zertifikats kann neben dem eigentlichen Zertifikat auch die gesamte Zertifikatskette geprüft und freigegeben werden.
+In der Detailansicht eines Zertifikats können neben dem Server Zertifikat auch Zertifikate aus der Zertifikatskette geprüft und freigegeben werden.
 
 ![Certificate modal](assets/rejected_certificate_modal.png)
