@@ -21,20 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.cloudogu.sslcontext;
 
-import sonia.scm.ExceptionWithContext;
+import { useState } from "react";
+import { apiClient } from "@scm-manager/ui-components";
 
-import static sonia.scm.ContextEntry.ContextBuilder.noContext;
+export const useManageCertificate = (refresh: () => void, onClose: () => void) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | undefined>();
 
-public class CertificateException extends ExceptionWithContext {
-
-  public CertificateException(String message, Exception cause) {
-    super(noContext(), message, cause);
+  const manage = (link: string) => {
+    setLoading(true);
+    apiClient
+      .post(link)
+      .then(() => refresh())
+      .then(() => setLoading(false))
+      .then(() => onClose())
+      .catch(setError);
   }
 
-  @Override
-  public String getCode() {
-    return "FySYQ3xiD1";
-  }
-}
+  return { loading, error, manage };
+};

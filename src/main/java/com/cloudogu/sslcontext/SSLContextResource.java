@@ -127,7 +127,6 @@ public class SSLContextResource {
 
   @POST
   @Path("/approve/{storedId}/{id}")
-  @Produces(MEDIA_TYPE)
   @Operation(
     summary = "Approve single certificate",
     description = "Approves a single server certificate",
@@ -136,11 +135,7 @@ public class SSLContextResource {
   )
   @ApiResponse(
     responseCode = "204",
-    description = "success",
-    content = @Content(
-      mediaType = MediaType.APPLICATION_JSON,
-      schema = @Schema(implementation = HalRepresentation.class)
-    )
+    description = "success"
   )
   @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
   @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to write the data")
@@ -159,7 +154,6 @@ public class SSLContextResource {
 
   @POST
   @Path("/reject/{storedId}/{id}")
-  @Produces(MEDIA_TYPE)
   @Operation(
     summary = "Reject single approved certificate",
     description = "Rejects a single approved server certificate",
@@ -168,11 +162,7 @@ public class SSLContextResource {
   )
   @ApiResponse(
     responseCode = "204",
-    description = "success",
-    content = @Content(
-      mediaType = MediaType.APPLICATION_JSON,
-      schema = @Schema(implementation = HalRepresentation.class)
-    )
+    description = "success"
   )
   @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
   @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to write the data")

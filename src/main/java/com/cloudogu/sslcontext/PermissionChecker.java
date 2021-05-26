@@ -23,18 +23,22 @@
  */
 package com.cloudogu.sslcontext;
 
-import sonia.scm.ExceptionWithContext;
+import org.apache.shiro.SecurityUtils;
 
-import static sonia.scm.ContextEntry.ContextBuilder.noContext;
+class PermissionChecker {
 
-public class CertificateException extends ExceptionWithContext {
-
-  public CertificateException(String message, Exception cause) {
-    super(noContext(), message, cause);
+  private PermissionChecker() {
   }
 
-  @Override
-  public String getCode() {
-    return "FySYQ3xiD1";
+  public static boolean mayReadSSLContext() {
+    return SecurityUtils.getSubject().isPermitted("sslcontext:read");
+  }
+
+  public static void checkReadSSLContext() {
+    SecurityUtils.getSubject().checkPermission("sslcontext:read");
+  }
+
+  public static void checkManageSSLContext() {
+    SecurityUtils.getSubject().checkPermission("sslcontext:write");
   }
 }

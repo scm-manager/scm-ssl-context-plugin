@@ -24,7 +24,6 @@
 package com.cloudogu.sslcontext;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.shiro.SecurityUtils;
 import sonia.scm.store.DataStore;
 import sonia.scm.store.DataStoreFactory;
 
@@ -51,12 +50,12 @@ public class CertificateStore {
   }
 
   public List<Certificate> getAllRejected() {
-    SecurityUtils.getSubject().checkPermission("sslcontext:read");
+    PermissionChecker.checkReadSSLContext();
     return ImmutableList.copyOf(rejectedCertStore.getAll().values());
   }
 
   public List<Certificate> getAllApproved() {
-    SecurityUtils.getSubject().checkPermission("sslcontext:read");
+    PermissionChecker.checkReadSSLContext();
     return ImmutableList.copyOf(approvedCertStore.getAll().values());
   }
 
@@ -64,8 +63,8 @@ public class CertificateStore {
     rejectedCertStore.put(certificate.getFingerprint(), certificate);
   }
 
-  public void approve(String storedId, String fingerprint) {
-    manageCertificates(storedId, fingerprint, rejectedCertStore, certificate -> {
+  public void approve(String serverCertFingerprint, String fingerprint) {
+    manageCertificates(serverCertFingerprint, fingerprint, rejectedCertStore, certificate -> {
       certificate.approve();
       certificate.updateTimestamp();
       approvedCertStore.put(certificate.getFingerprint(), certificate);
@@ -73,16 +72,16 @@ public class CertificateStore {
     });
   }
 
-  public void reject(String storedId, String fingerprint) {
-    manageCertificates(storedId, fingerprint, approvedCertStore, certificate -> {
+  public void reject(String serverCertFingerprint, String fingerprint) {
+    manageCertificates(serverCertFingerprint, fingerprint, approvedCertStore, certificate -> {
       approvedCertStore.remove(certificate.getFingerprint());
       trustedCertificatesStore.remove(certificate);
     });
   }
 
-  private void manageCertificates(String storedId, String fingerprint, DataStore<Certificate> store, Consumer<Certificate> consumer) {
-    SecurityUtils.getSubject().checkPermission("sslContext:write");
-    Certificate certificate = store.get(storedId);
+  private void manageCertificates(String serverCertFingerprint, String fingerprint, DataStore<Certificate> store, Consumer<Certificate> consumer) {
+    PermissionChecker.checkManageSSLContext();
+    Certificate certificate = store.get(serverCertFingerprint);
     while (certificate != null) {
       if (fingerprint.equals(certificate.getFingerprint())) {
         consumer.accept(certificate);

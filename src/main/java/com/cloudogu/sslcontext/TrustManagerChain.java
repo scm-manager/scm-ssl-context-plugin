@@ -40,9 +40,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-
-import static sonia.scm.ContextEntry.ContextBuilder.noContext;
+import java.util.Set;
 
 @Named("chain")
 class TrustManagerChain implements X509TrustManager {
@@ -65,7 +66,7 @@ class TrustManagerChain implements X509TrustManager {
       trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       trustManagerFactory.init(keyStore);
     } catch (NoSuchAlgorithmException | KeyStoreException e) {
-      throw new com.cloudogu.sslcontext.CertificateException(noContext(), "Could not find default trust manager", e);
+      throw new com.cloudogu.sslcontext.CertificateException("Could not initialize trust manager", e);
     }
 
     List<X509TrustManager> trustManagers = new ArrayList<>();
@@ -78,24 +79,6 @@ class TrustManagerChain implements X509TrustManager {
 
   @Override
   public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-    try {
-      for (X509TrustManager trustManager : platformTrustManagers) {
-        trustManager.checkClientTrusted(x509Certificates, s);
-      }
-    } catch (CertificateException platformException) {
-      try {
-        for (X509TrustManager trustManager : storedTrustManagers) {
-          trustManager.checkClientTrusted(x509Certificates, s);
-        }
-      } catch (Exception storeException) {
-        LOG.trace("store trust manager returns error", storeException);
-        throw platformException;
-      }
-    }
-  }
-
-  @Override
-  public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
     try {
       for (X509TrustManager trustManager : platformTrustManagers) {
         trustManager.checkServerTrusted(x509Certificates, s);
@@ -113,10 +96,33 @@ class TrustManagerChain implements X509TrustManager {
   }
 
   @Override
+  public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+    try {
+      for (X509TrustManager trustManager : platformTrustManagers) {
+        trustManager.checkClientTrusted(x509Certificates, s);
+      }
+    } catch (CertificateException platformException) {
+      try {
+        for (X509TrustManager trustManager : storedTrustManagers) {
+          trustManager.checkClientTrusted(x509Certificates, s);
+        }
+      } catch (Exception storeException) {
+        LOG.trace("store trust manager returns error", storeException);
+        throw platformException;
+      }
+    }
+  }
+
+  @Override
   public X509Certificate[] getAcceptedIssuers() {
-    return (X509Certificate[]) ArrayUtils.addAll(
-      platformTrustManagers.iterator().next().getAcceptedIssuers(),
-      storedTrustManagers.iterator().next().getAcceptedIssuers()
-    );
+    Set<X509Certificate> acceptedIssuers = new HashSet<>();
+    for (X509TrustManager tm : platformTrustManagers) {
+      acceptedIssuers.addAll(Arrays.asList(tm.getAcceptedIssuers()));
+    }
+    for (X509TrustManager tm : storedTrustManagers) {
+      acceptedIssuers.addAll(Arrays.asList(tm.getAcceptedIssuers()));
+    }
+
+    return acceptedIssuers.toArray(new X509Certificate[0]);
   }
 }

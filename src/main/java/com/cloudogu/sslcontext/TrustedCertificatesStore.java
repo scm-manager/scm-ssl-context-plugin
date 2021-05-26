@@ -23,7 +23,6 @@
  */
 package com.cloudogu.sslcontext;
 
-import sonia.scm.ContextEntry;
 import sonia.scm.store.Blob;
 import sonia.scm.store.BlobStore;
 import sonia.scm.store.BlobStoreFactory;
@@ -40,6 +39,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -68,9 +68,9 @@ class TrustedCertificatesStore {
   private KeyStore loadKeyStore() {
     try {
       KeyStore ks = KeyStore.getInstance("JKS");
-      Blob blob = getBlob();
-      if (blob.getSize() > 0) {
-        try (InputStream is = blob.getInputStream()) {
+      Optional<Blob> optionalBlob = blobStore.getOptional(NAME);
+      if (optionalBlob.isPresent()) {
+        try (InputStream is = optionalBlob.get().getInputStream()) {
           ks.load(is, PASSWORD);
         }
       } else {
@@ -79,7 +79,6 @@ class TrustedCertificatesStore {
       return ks;
     } catch (IOException | GeneralSecurityException e) {
       throw new com.cloudogu.sslcontext.CertificateException(
-        ContextEntry.ContextBuilder.noContext(),
         "Could not load stored trust store",
         e
       );
@@ -92,7 +91,6 @@ class TrustedCertificatesStore {
         ks.setCertificateEntry(certificate.getFingerprint(), toX509(certificate));
       } catch (KeyStoreException e) {
         throw new com.cloudogu.sslcontext.CertificateException(
-          ContextEntry.ContextBuilder.noContext(),
           "Could not add certificate to stored trust store",
           e
         );
@@ -106,7 +104,6 @@ class TrustedCertificatesStore {
         ks.deleteEntry(cert.getFingerprint());
       } catch (KeyStoreException e) {
         throw new com.cloudogu.sslcontext.CertificateException(
-          ContextEntry.ContextBuilder.noContext(),
           "Could not remove certificate from stored trust store",
           e
         );
@@ -121,7 +118,6 @@ class TrustedCertificatesStore {
       listeners.forEach(c -> c.accept(keyStore));
     } catch (GeneralSecurityException | IOException e) {
       throw new com.cloudogu.sslcontext.CertificateException(
-        ContextEntry.ContextBuilder.noContext(),
         "Could not modify stored trust store",
         e
       );
@@ -133,7 +129,6 @@ class TrustedCertificatesStore {
       return certificate.toX509();
     } catch (CertificateException e) {
       throw new com.cloudogu.sslcontext.CertificateException(
-        ContextEntry.ContextBuilder.noContext(),
         "Could not deserialize stored certificate byte array to X509Certificate object",
         e
       );

@@ -28,6 +28,7 @@ import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certif
 import styled from "styled-components";
 import classNames from "classnames";
 import { Link } from "@scm-manager/ui-types";
+import { useManageCertificate } from "../useManageCertificate";
 
 export const SizedModal = styled(Modal)`
   .modal-card {
@@ -80,15 +81,7 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
-  const [error, setError] = useState<Error>();
-
-  const manageCertificate = (link: string) => {
-    apiClient
-      .post(link)
-      .then(() => onClose())
-      .then(() => refresh())
-      .catch(setError);
-  };
+  const { loading, error, manage } = useManageCertificate(refresh, onClose);
 
   const renderButton = () => {
     if (!!selectedCert._links) {
@@ -96,9 +89,10 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
         return (
           <Button
             label={t("scm-ssl-context-plugin.table.reject")}
-            action={() => manageCertificate((selectedCert._links.reject as Link).href)}
+            action={() => manage((selectedCert._links.reject as Link).href)}
             color="info"
             type="button"
+            loading={loading}
           />
         );
       }

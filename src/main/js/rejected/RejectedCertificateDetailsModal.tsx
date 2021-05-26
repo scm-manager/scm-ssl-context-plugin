@@ -22,11 +22,12 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { apiClient, Button, ErrorNotification, Level } from "@scm-manager/ui-components";
+import { Button, ErrorNotification, Level } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate, formatAsTimestamp } from "../certificates";
 import { Link } from "@scm-manager/ui-types";
 import { ChainEntry, SizedModal } from "../approved/ApprovedCertificateDetailsModal";
+import { useManageCertificate } from "../useManageCertificate";
 
 type Props = {
   active: boolean;
@@ -39,15 +40,7 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
-  const [error, setError] = useState<Error>();
-
-  const manageCertificate = (link: string) => {
-    apiClient
-      .post(link)
-      .then(() => onClose())
-      .then(() => refresh())
-      .catch(setError);
-  };
+  const { loading, error, manage } = useManageCertificate(refresh, onClose);
 
   const renderButton = () => {
     if (!!selectedCert._links) {
@@ -55,9 +48,10 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
         return (
           <Button
             label={t("scm-ssl-context-plugin.table.approve")}
-            action={() => manageCertificate((selectedCert._links.approve as Link).href)}
+            action={() => manage((selectedCert._links.approve as Link).href)}
             color="info"
             type="button"
+            loading={loading}
           />
         );
       }

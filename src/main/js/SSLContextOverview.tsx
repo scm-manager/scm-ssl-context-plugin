@@ -39,17 +39,16 @@ const SSLContextOverview: FC<Props> = ({ links }) => {
   const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
   const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
 
-  const refreshAllData = () => {
-    rejectedResult.refresh();
+  const refreshApproved = () => {
     approvedResult.refresh();
   };
 
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <SSLContextApprovedOverview {...approvedResult} refresh={refreshAllData} />
+      <SSLContextApprovedOverview {...approvedResult} refresh={refreshApproved} />
       <hr />
-      <SSLContextRejectedOverview {...rejectedResult} refresh={refreshAllData} />
+      <SSLContextRejectedOverview {...rejectedResult} refresh={refreshApproved} />
     </>
   );
 };
