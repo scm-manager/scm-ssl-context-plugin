@@ -66,7 +66,6 @@ public class CertificateStore {
   public void approve(String serverCertFingerprint, String fingerprint) {
     manageCertificates(serverCertFingerprint, fingerprint, rejectedCertStore, certificate -> {
       certificate.approve();
-      certificate.updateTimestamp();
       approvedCertStore.put(certificate.getFingerprint(), certificate);
       trustedCertificatesStore.add(certificate);
     });

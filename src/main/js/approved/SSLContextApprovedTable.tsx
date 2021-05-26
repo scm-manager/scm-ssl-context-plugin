@@ -52,8 +52,8 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
           refresh={refresh}
         />
       ) : null}
-      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.approved")} className="mb-0" />
-      <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
+      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.approved")} className="mb-3" />
+      <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")} className="mt-4">
         <Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}

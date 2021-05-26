@@ -33,9 +33,9 @@ export const useManageCertificate = (refresh: () => void, onClose: () => void) =
     setLoading(true);
     apiClient
       .post(link)
-      .then(() => refresh())
+      .then(refresh)
       .then(() => setLoading(false))
-      .then(() => onClose())
+      .then(onClose)
       .catch(setError);
   }
 

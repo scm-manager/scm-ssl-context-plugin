@@ -52,7 +52,7 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
           refresh={refresh}
         />
       ) : null}
-      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-0" />
+      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-3" />
       <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
         <Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}

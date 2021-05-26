@@ -74,6 +74,7 @@ public class Certificate {
   }
 
   public void approve() {
+    timestamp = Instant.now();
     if (status == Status.REJECTED) {
       status = Status.APPROVED;
     } else {
@@ -82,15 +83,12 @@ public class Certificate {
   }
 
   public void reject() {
+    timestamp = Instant.now();
     if (status == Status.APPROVED) {
       status = Status.REJECTED;
     } else {
       throw new IllegalStateException("certificate is already rejected");
     }
-  }
-
-  public void updateTimestamp() {
-    timestamp = Instant.now();
   }
 
   public X509Certificate toX509() throws CertificateException {
