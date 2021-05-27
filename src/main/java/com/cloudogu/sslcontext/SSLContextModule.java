@@ -30,6 +30,7 @@ import sonia.scm.plugin.Extension;
 
 import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 @Extension
@@ -40,5 +41,6 @@ public class SSLContextModule extends AbstractModule {
     bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
     bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
     bind(X509TrustManager.class).annotatedWith(Names.named("chain")).to(TrustManagerChain.class);
+    bind(TrustManager.class).annotatedWith(Names.named("default")).to(CapturingTrustManager.class).in(Singleton.class);
   }
 }
