@@ -24,7 +24,6 @@
 package com.cloudogu.sslcontext;
 
 import com.google.inject.Provider;
-import org.apache.shiro.SecurityUtils;
 import sonia.scm.api.v2.resources.Enrich;
 import sonia.scm.api.v2.resources.HalAppender;
 import sonia.scm.api.v2.resources.HalEnricher;
@@ -50,12 +49,19 @@ public class IndexLinkEnricher implements HalEnricher {
   @Override
   public void enrich(HalEnricherContext context, HalAppender appender) {
 
-    if (SecurityUtils.getSubject().isPermitted("sslContext:read")) {
-      String sslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
-        .method("get")
+    if (PermissionChecker.mayReadSSLContext()) {
+      String rejectedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("getAllRejected")
         .parameters()
         .href();
-      appender.appendLink("sslContext", sslContextUrl);
+      String approvedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("getAllApproved")
+        .parameters()
+        .href();
+      appender
+        .linkArrayBuilder("sslContext")
+        .append("rejected", rejectedSslContextUrl)
+        .append("approved", approvedSslContextUrl).build();
     }
   }
 }

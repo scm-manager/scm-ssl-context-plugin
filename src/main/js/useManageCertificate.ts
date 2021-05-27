@@ -21,24 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.cloudogu.sslcontext;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import org.mapstruct.factory.Mappers;
-import sonia.scm.plugin.Extension;
+import { useState } from "react";
+import { apiClient } from "@scm-manager/ui-components";
 
-import javax.inject.Singleton;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
+export const useManageCertificate = (refresh: () => void, onClose: () => void) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | undefined>();
 
-@Extension
-public class SSLContextModule extends AbstractModule {
-
-  @Override
-  protected void configure() {
-    bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
-    bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
-    bind(X509TrustManager.class).annotatedWith(Names.named("chain")).to(TrustManagerChain.class);
+  const manage = (link: string) => {
+    setLoading(true);
+    apiClient
+      .post(link)
+      .then(refresh)
+      .then(() => setLoading(false))
+      .then(onClose)
+      .catch(setError);
   }
-}
+
+  return { loading, error, manage };
+};

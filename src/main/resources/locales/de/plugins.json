@@ -7,7 +7,10 @@
         "chain": "Zertifikatskette",
         "commonName": "Common Name",
         "status": "Status",
-        "timestamp": "Letzter Fehlschlag",
+        "timestamp": {
+          "rejected": "Letzter Fehlschlag",
+          "approved": "Freigegeben am"
+        },
         "certificateError": "Fehler",
         "subjectDN": "Subject DN",
         "issuerDN": "Issuer DN",
@@ -17,10 +20,13 @@
         "fingerprint": "SHA1 Fingerabdruck"
       },
       "title": {
-        "rejected": "Abgelehnte Zertifikate"
+        "rejected": "Abgelehnte Zertifikate",
+        "approved": "Freigegebene Zertifikate"
       },
       "details": "Details",
-      "emptyMessage": "Keine Zertifikate gefunden."
+      "emptyMessage": "Keine Zertifikate gefunden.",
+      "approve": "Zertifikat erlauben",
+      "reject": "Zertifikat ablehnen"
     },
     "modal": {
       "title": "Zertifikat Details"
@@ -32,6 +38,12 @@
         "displayName": "SSL Kontext Informationen lesen",
         "description": "Darf SSL Kontext Informationen lesen"
       }
+    }
+  },
+  "errors": {
+    "FySYQ3xiD1": {
+      "displayName": "Zertifikatsfehler",
+      "description": "Beim Verwalten oder Validieren Ihrer Zertifikate ist ein Fehler aufgetreten. Prüfen Sie die Server Logs für mehr Informationen."
     }
   }
 }

@@ -76,6 +76,7 @@ public class Certificate {
   public void approve() {
     if (status == Status.REJECTED) {
       status = Status.APPROVED;
+      timestamp = Instant.now();
     } else {
       throw new IllegalStateException("certificate is already approved");
     }
@@ -84,6 +85,7 @@ public class Certificate {
   public void reject() {
     if (status == Status.APPROVED) {
       status = Status.REJECTED;
+      timestamp = Instant.now();
     } else {
       throw new IllegalStateException("certificate is already rejected");
     }

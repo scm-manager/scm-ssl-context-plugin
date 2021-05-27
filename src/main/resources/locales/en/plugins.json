@@ -6,7 +6,10 @@
       "column": {
         "chain": "Certificate Chain",
         "commonName": "Common Name",
-        "timestamp": "Last failure",
+        "timestamp": {
+          "rejected": "Last Failure",
+          "approved": "Approved On"
+        },
         "certificateError": "Error",
         "subjectDN": "Subject DN",
         "issuerDN": "Issuer DN",
@@ -16,10 +19,13 @@
         "fingerprint": "SHA1 Fingerprint"
       },
       "title": {
-        "rejected": "Rejected Certificates"
+        "rejected": "Rejected Certificates",
+        "approved": "Approved Certificates"
       },
       "details": "Details",
-      "emptyMessage": "No certificates found."
+      "emptyMessage": "No certificates found.",
+      "approve": "Approve Certificate",
+      "reject": "Reject Certificate"
     },
     "modal": {
       "title": "Certificate Details"
@@ -31,6 +37,12 @@
         "displayName": "Access ssl context information",
         "description": "May see the ssl context overview"
       }
+    }
+  },
+  "errors": {
+    "FySYQ3xiD1": {
+      "displayName": "Certificate error",
+      "description": "An error occurred while managing or validating your certificates. Check the server logs for more information."
     }
   }
 }

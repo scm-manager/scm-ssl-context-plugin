@@ -24,32 +24,69 @@
 package com.cloudogu.sslcontext;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.shiro.SecurityUtils;
 import sonia.scm.store.DataStore;
 import sonia.scm.store.DataStoreFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Singleton
 public class CertificateStore {
 
-  private static final String STORE_NAME = "X509_certificates";
+  private static final String REJECTED_STORE_NAME = "rejected-certificates";
+  private static final String APPROVED_STORE_NAME = "approved-certificates";
 
-  private final DataStore<Certificate> store;
+  private final DataStore<Certificate> rejectedCertStore;
+  private final DataStore<Certificate> approvedCertStore;
+  private final TrustedCertificatesStore trustedCertificatesStore;
 
   @Inject
-  public CertificateStore(DataStoreFactory dataStoreFactory) {
-    this.store = dataStoreFactory.withType(Certificate.class).withName(STORE_NAME).build();
+  public CertificateStore(DataStoreFactory dataStoreFactory, TrustedCertificatesStore trustedCertificatesStore) {
+    this.rejectedCertStore = dataStoreFactory.withType(Certificate.class).withName(REJECTED_STORE_NAME).build();
+    this.approvedCertStore = dataStoreFactory.withType(Certificate.class).withName(APPROVED_STORE_NAME).build();
+    this.trustedCertificatesStore = trustedCertificatesStore;
   }
 
-  public List<Certificate> getAll() {
-    SecurityUtils.getSubject().checkPermission("sslcontext:read");
-    return ImmutableList.copyOf(store.getAll().values());
+  public List<Certificate> getAllRejected() {
+    PermissionChecker.checkReadSSLContext();
+    return ImmutableList.copyOf(rejectedCertStore.getAll().values());
+  }
+
+  public List<Certificate> getAllApproved() {
+    PermissionChecker.checkReadSSLContext();
+    return ImmutableList.copyOf(approvedCertStore.getAll().values());
   }
 
   void put(Certificate certificate) {
-    store.put(certificate.getFingerprint(), certificate);
+    rejectedCertStore.put(certificate.getFingerprint(), certificate);
+  }
+
+  public void approve(String serverCertFingerprint, String fingerprint) {
+    manageCertificates(serverCertFingerprint, fingerprint, rejectedCertStore, certificate -> {
+      certificate.approve();
+      approvedCertStore.put(certificate.getFingerprint(), certificate);
+      trustedCertificatesStore.add(certificate);
+    });
+  }
+
+  public void reject(String serverCertFingerprint, String fingerprint) {
+    manageCertificates(serverCertFingerprint, fingerprint, approvedCertStore, certificate -> {
+      approvedCertStore.remove(certificate.getFingerprint());
+      trustedCertificatesStore.remove(certificate);
+    });
+  }
+
+  private void manageCertificates(String serverCertFingerprint, String fingerprint, DataStore<Certificate> store, Consumer<Certificate> consumer) {
+    PermissionChecker.checkManageSSLContext();
+    Certificate certificate = store.get(serverCertFingerprint);
+    while (certificate != null) {
+      if (fingerprint.equals(certificate.getFingerprint())) {
+        consumer.accept(certificate);
+        break;
+      }
+      certificate = certificate.getParent();
+    }
   }
 }

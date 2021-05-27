@@ -21,22 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import React, { FC, useState } from "react";
-import { Column, comparators, Subtitle, Table, TextColumn } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
-import { Certificate, parseCommonNameFromDN } from "./certificates";
-import CertificateDetailsModal from "./CertificateDetailsModal";
+import { Column, comparators, Subtitle, Table } from "@scm-manager/ui-components";
+import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
 type Props = {
-  certificates: Certificate[];
+  chain: Certificate[];
+  refresh: () => void;
 };
 
-export const formatAsTimestamp = (date: Date) => {
-  return format(new Date(date), "yyyy-MM-dd HH:mm:ss");
-};
-
-const SSLContextTable: FC<Props> = ({ certificates }) => {
+const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -44,19 +40,20 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
   };
 
   const timestampComparator = comparators.byKey("timestamp");
-  const initialSorted = certificates.sort((a, b) => timestampComparator(a, b) * -1);
+  const initialSorted = chain.sort((a, b) => timestampComparator(a, b) * -1);
 
   return (
     <>
       {selectedCertificate ? (
-        <CertificateDetailsModal
+        <ApprovedCertificateDetailsModal
           onClose={() => setSelectedCertificate(undefined)}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
+          refresh={refresh}
         />
       ) : null}
-      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-0" />
-      <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
+      <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.approved")} className="mb-3" />
+      <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")} className="mt-4">
         <Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}
@@ -65,9 +62,8 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
         >
           {row => parseCommonNameFromDN(row.subjectDN)}
         </Column>
-        <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
         <Column
-          header={t("scm-ssl-context-plugin.table.column.timestamp")}
+          header={t("scm-ssl-context-plugin.table.column.timestamp.approved")}
           createComparator={() => timestampComparator}
           ascendingIcon="sort"
           descendingIcon="sort"
@@ -82,4 +78,4 @@ const SSLContextTable: FC<Props> = ({ certificates }) => {
   );
 };
 
-export default SSLContextTable;
+export default SSLContextApprovedTable;

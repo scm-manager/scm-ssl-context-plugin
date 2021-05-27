@@ -23,22 +23,18 @@
  */
 package com.cloudogu.sslcontext;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import org.mapstruct.factory.Mappers;
-import sonia.scm.plugin.Extension;
+import sonia.scm.ExceptionWithContext;
 
-import javax.inject.Singleton;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
+import static sonia.scm.ContextEntry.ContextBuilder.noContext;
 
-@Extension
-public class SSLContextModule extends AbstractModule {
+public class CertificateException extends ExceptionWithContext {
+
+  public CertificateException(String message, Exception cause) {
+    super(noContext(), message, cause);
+  }
 
   @Override
-  protected void configure() {
-    bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
-    bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
-    bind(X509TrustManager.class).annotatedWith(Names.named("chain")).to(TrustManagerChain.class);
+  public String getCode() {
+    return "FySYQ3xiD1";
   }
 }

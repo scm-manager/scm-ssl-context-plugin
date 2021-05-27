@@ -22,31 +22,33 @@
  * SOFTWARE.
  */
 import React, { FC } from "react";
-import { ErrorNotification, Loading, Title } from "@scm-manager/ui-components";
+import { Links } from "@scm-manager/ui-types";
 import { useTranslation } from "react-i18next";
-import SSLContextTable from "./SSLContextTable";
-import useCertificateCollection from "./useCertificateCollection";
+import { Title } from "@scm-manager/ui-components";
+import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
+import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
+import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
+import { getLinkByName } from "./certificates";
 
 type Props = {
-  link: string;
+  links: Links;
 };
 
-const SSLContextOverview: FC<Props> = ({ link }) => {
-  const { data, error, loading } = useCertificateCollection(link);
+const SSLContextOverview: FC<Props> = ({ links }) => {
   const [t] = useTranslation("plugins");
+  const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
+  const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
 
-  if (error) {
-    return <ErrorNotification error={error} />;
-  }
-
-  if (loading) {
-    return <Loading />;
-  }
+  const refreshApproved = () => {
+    approvedResult.refresh();
+  };
 
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <SSLContextTable certificates={data?._embedded.certificates || []} />
+      <SSLContextApprovedOverview {...approvedResult} refresh={refreshApproved} />
+      <hr />
+      <SSLContextRejectedOverview {...rejectedResult} refresh={refreshApproved} />
     </>
   );
 };

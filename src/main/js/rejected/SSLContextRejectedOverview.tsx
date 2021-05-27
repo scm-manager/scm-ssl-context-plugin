@@ -21,51 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import React, { FC } from "react";
+import { ErrorNotification, Loading } from "@scm-manager/ui-components";
+import SSLContextRejectedTable from "./SSLContextRejectedTable";
+import { Certificate, CertificateCollection } from "../certificates";
 
-import { HalRepresentation, Link, Links } from "@scm-manager/ui-types";
-import { format } from "date-fns";
-
-type CertificateError =
-  | "CERTIFICATE_UNKNOWN"
-  | "CERTIFICATE_EXPIRED"
-  | "CERTIFICATE_NOT_YET_VALID"
-  | "CERTIFICATE_REVOKED";
-
-type CertificateStatus = "REJECTED" | "APPROVED";
-
-export type CertificateCollection = HalRepresentation & {
-  _embedded: {
-    certificates: Certificate[];
-  };
+type Props = {
+  data?: CertificateCollection;
+  loading: boolean;
+  error?: Error;
+  refresh: () => void;
 };
 
-export type Certificate = HalRepresentation & {
-  error: CertificateError;
-  fingerprint: string;
-  issuerDN: string;
-  notAfter: Date;
-  notBefore: Date;
-  signAlg: string;
-  status: CertificateStatus;
-  subjectDN: string;
-  timestamp: Date;
-  _embedded: {
-    chain: Certificate[];
-  };
+const SSLContextRejectedOverview: FC<Props> = ({ data, loading, error, refresh }) => {
+  if (error) {
+    return <ErrorNotification error={error} />;
+  }
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  return <SSLContextRejectedTable chain={(data?._embedded.chain as Certificate[]) || []} refresh={refresh} />;
 };
 
-export const parseCommonNameFromDN = (dn: string) => {
-  const commonName = dn
-    .split(",")
-    .filter((s: string) => s.includes("CN="))[0]
-    .trim();
-  return commonName.substr(3, commonName.length + 1);
-};
-
-export const getLinkByName = (links: Links, linkName: string) => {
-  return (links.sslContext as Link[]).filter(l => l.name === linkName)[0].href;
-};
-
-export const formatAsTimestamp = (date: Date) => {
-  return format(new Date(date), "yyyy-MM-dd HH:mm:ss");
-};
+export default SSLContextRejectedOverview;

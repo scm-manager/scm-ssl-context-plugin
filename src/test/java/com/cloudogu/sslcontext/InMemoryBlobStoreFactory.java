@@ -21,24 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package com.cloudogu.sslcontext;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
-import org.mapstruct.factory.Mappers;
-import sonia.scm.plugin.Extension;
+import sonia.scm.store.BlobStore;
+import sonia.scm.store.BlobStoreFactory;
+import sonia.scm.store.StoreParameters;
 
-import javax.inject.Singleton;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
+import java.util.HashMap;
+import java.util.Map;
 
-@Extension
-public class SSLContextModule extends AbstractModule {
+public class InMemoryBlobStoreFactory implements BlobStoreFactory {
+
+  private final Map<String, BlobStore> stores = new HashMap<>();
+
+  private final BlobStore fixedStore;
+
+  public InMemoryBlobStoreFactory() {
+    this(null);
+  }
+
+  public InMemoryBlobStoreFactory(BlobStore fixedStore) {
+    this.fixedStore = fixedStore;
+  }
 
   @Override
-  protected void configure() {
-    bind(CertificateMapper.class).to(Mappers.getMapperClass(CertificateMapper.class));
-    bind(SSLContext.class).annotatedWith(Names.named("default")).toProvider(SSLContextProvider.class).in(Singleton.class);
-    bind(X509TrustManager.class).annotatedWith(Names.named("chain")).to(TrustManagerChain.class);
+  public BlobStore getStore(StoreParameters storeParameters) {
+    if (fixedStore == null) {
+      return stores.computeIfAbsent(computeKey(storeParameters), key -> new InMemoryBlobStore());
+    } else {
+      return fixedStore;
+    }
+  }
+
+  private String computeKey(StoreParameters storeParameters) {
+    if (storeParameters.getRepositoryId() == null) {
+      return storeParameters.getName();
+    } else {
+      return storeParameters.getName() + "/" + storeParameters.getRepositoryId();
+    }
   }
 }

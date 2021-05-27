@@ -76,18 +76,17 @@ class CertificateCollectionMapperTest {
     one.approve();
     Certificate two = createCertificate(cert);
 
-    HalRepresentation dto = collectionMapper.map(ImmutableList.of(one, two));
+    HalRepresentation dto = collectionMapper.map(ImmutableList.of(one, two), REJECTED);
 
     assertThat(dto.getLinks().getLinkBy("self")).hasValueSatisfying(link -> {
-      assertThat(link.getHref()).isEqualTo("scm/api/v2/ssl-context/");
+      assertThat(link.getHref()).isEqualTo("scm/api/v2/ssl-context/rejected");
     });
-    assertThat(dto.getEmbedded().hasItem("certificates")).isTrue();
+    assertThat(dto.getEmbedded().hasItem("chain")).isTrue();
 
-    List<HalRepresentation> certificates = dto.getEmbedded().getItemsBy("certificates");
+    List<HalRepresentation> certificates = dto.getEmbedded().getItemsBy("chain");
     assertThat(certificates).hasSize(2);
 
     CertificateDto firstCertDto = (CertificateDto) certificates.get(0);
-    assertThat(firstCertDto.getStatus()).isEqualTo(APPROVED);
     assertThat(firstCertDto.getStatus()).isEqualTo(APPROVED);
 
     CertificateDto secondCertDto = (CertificateDto) certificates.get(1);
