@@ -30,10 +30,17 @@ plugins {
 dependencies {
   testImplementation 'org.bouncycastle:bcprov-jdk15on:1.54'
   testImplementation 'com.github.sdorra:junit-shiro-extension:1.0.1'
+  // we don't want the transitive dependencies in the resulting smp ...
+  implementation("org.jboss.resteasy:resteasy-multipart-provider:4.5.8.Final") {
+    transitive = false
+  }
+  implementation("commons-io:commons-io:2.5")
+  // ... but we want them on the classpath for testing
+  testImplementation "org.jboss.resteasy:resteasy-multipart-provider:4.5.8.Final"
 }
 
 scmPlugin {
-  scmVersion = "2.0.0"
+  scmVersion = "2.19.1"
   displayName = "SSL Context Plugin"
   description = "Provides information about SSL connections like rejected certificates"
 

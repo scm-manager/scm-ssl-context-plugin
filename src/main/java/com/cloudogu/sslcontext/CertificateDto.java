@@ -42,6 +42,7 @@ public class CertificateDto extends HalRepresentation {
   private Instant notAfter;
   private String signAlg;
   private String fingerprint;
+  private boolean uploaded;
 
   private Certificate.Status status;
   private Certificate.Error error;

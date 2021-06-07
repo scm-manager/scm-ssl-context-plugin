@@ -77,6 +77,7 @@ class IndexLinkEnricherTest {
 
     verify(linkArrayBuilder).append("rejected", "/scm/v2/ssl-context/rejected");
     verify(linkArrayBuilder).append("approved", "/scm/v2/ssl-context/approved");
+    verify(linkArrayBuilder).append("upload", "/scm/v2/ssl-context/upload");
   }
 
   @Test

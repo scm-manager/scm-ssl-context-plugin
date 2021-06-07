@@ -49,6 +49,11 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
   @Inject
   Provider<ScmPathInfoStore> scmPathInfoStore;
 
+  @Mapping(target = "subjectDN", ignore = true)
+  @Mapping(target = "signAlg", ignore = true)
+  @Mapping(target = "notBefore", ignore = true)
+  @Mapping(target = "notAfter", ignore = true)
+  @Mapping(target = "issuerDN", ignore = true)
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "parent", ignore = true)
   public abstract CertificateDto map(Certificate certificate);

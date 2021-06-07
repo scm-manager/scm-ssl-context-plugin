@@ -7,6 +7,7 @@
         "chain": "Zertifikatskette",
         "commonName": "Common Name",
         "status": "Status",
+        "uploaded": "Manuell hochgeladen",
         "timestamp": {
           "rejected": "Letzter Fehlschlag",
           "approved": "Freigegeben am"
@@ -30,6 +31,14 @@
     },
     "modal": {
       "title": "Zertifikat Details"
+    },
+    "upload": {
+      "subtitle": "Zertifikat hochladen",
+      "label": "Zertifikat hochladen",
+      "helpText": "Hochgeladene Zertifikate werden vom SCM-Manager freigegeben. Diese können auch nachträglich wieder abgelehnt werden.",
+      "fileLimit": "Zertifikatsdatei ist zu groß. Die Dateigrößen ist auf 50 KB beschränkt.",
+      "submitNotification": "Das Zertifikat wurde erfolgreich hochgeladen und freigegeben.",
+      "submit": "Datei hochladen"
     }
   },
   "permissions": {

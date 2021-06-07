@@ -58,10 +58,16 @@ public class IndexLinkEnricher implements HalEnricher {
         .method("getAllApproved")
         .parameters()
         .href();
+      String uploadSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
+        .method("uploadCertificate")
+        .parameters()
+        .href();
       appender
         .linkArrayBuilder("sslContext")
         .append("rejected", rejectedSslContextUrl)
-        .append("approved", approvedSslContextUrl).build();
+        .append("approved", approvedSslContextUrl)
+        .append("upload", uploadSslContextUrl)
+        .build();
     }
   }
 }

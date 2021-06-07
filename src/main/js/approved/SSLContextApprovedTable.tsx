@@ -24,7 +24,7 @@
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import React, { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Column, comparators, Subtitle, Table } from "@scm-manager/ui-components";
+import { Checkbox, Column, comparators, Subtitle, Table } from "@scm-manager/ui-components";
 import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
 type Props = {
@@ -69,6 +69,9 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
           descendingIcon="sort"
         >
           {row => formatAsTimestamp(row.timestamp)}
+        </Column>
+        <Column header={t("scm-ssl-context-plugin.table.column.uploaded")}>
+          {row => <Checkbox checked={row.uploaded} />}
         </Column>
         <Column header="">
           {row => <a onClick={() => openModal(row)}>{t("scm-ssl-context-plugin.table.details")}</a>}

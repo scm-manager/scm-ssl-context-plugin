@@ -49,6 +49,7 @@ public class Certificate {
 
   private Status status;
   private Error error;
+  private boolean uploaded = false;
   private String fingerprint;
   @XmlJavaTypeAdapter(XmlInstantAdapter.class)
   private Instant timestamp;
@@ -89,6 +90,10 @@ public class Certificate {
     } else {
       throw new IllegalStateException("certificate is already rejected");
     }
+  }
+
+  public void setUploaded() {
+    this.uploaded = true;
   }
 
   public X509Certificate toX509() throws CertificateException {

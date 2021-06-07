@@ -6,6 +6,7 @@
       "column": {
         "chain": "Certificate Chain",
         "commonName": "Common Name",
+        "uploaded": "Manually uploaded",
         "timestamp": {
           "rejected": "Last Failure",
           "approved": "Approved On"
@@ -29,6 +30,14 @@
     },
     "modal": {
       "title": "Certificate Details"
+    },
+    "upload": {
+      "subtitle": "Upload certificate",
+      "label": "Upload certificate",
+      "helpText": "Uploaded certificates will be approved by the SCM-Manager. They can still be rejected afterwards.",
+      "fileLimit": "Certificate file is too large. File upload limit is 50 KB.",
+      "submitNotification": "The certificate was uploaded and approved successfully.",
+      "submit": "Upload File"
     }
   },
   "permissions": {

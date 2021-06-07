@@ -49,6 +49,7 @@ export type Certificate = HalRepresentation & {
   status: CertificateStatus;
   subjectDN: string;
   timestamp: Date;
+  uploaded?: boolean;
   _embedded: {
     chain: Certificate[];
   };

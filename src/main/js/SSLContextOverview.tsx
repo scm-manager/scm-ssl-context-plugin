@@ -29,6 +29,7 @@ import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
 import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
 import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
 import { getLinkByName } from "./certificates";
+import SSLCertificateUpload from "./SSLCertificateUpload";
 
 type Props = {
   links: Links;
@@ -49,6 +50,8 @@ const SSLContextOverview: FC<Props> = ({ links }) => {
       <SSLContextApprovedOverview {...approvedResult} refresh={refreshApproved} />
       <hr />
       <SSLContextRejectedOverview {...rejectedResult} refresh={refreshApproved} />
+      <hr/>
+      <SSLCertificateUpload link={getLinkByName(links, "upload")} refresh={refreshApproved} />
     </>
   );
 };

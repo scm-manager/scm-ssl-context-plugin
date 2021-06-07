@@ -6,5 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Certificate upload ([#2](https://github.com/scm-manager/scm-ssl-context-plugin/pull/2))
+
+## 1.0.0 - 2021-06-03
+### Added
 - Show rejected certificates on own admin page
 - Approve/reject unknown certificates ([#1](https://github.com/scm-manager/scm-ssl-context-plugin/pull/1))
