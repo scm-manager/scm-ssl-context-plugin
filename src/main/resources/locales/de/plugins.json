@@ -7,7 +7,11 @@
         "chain": "Zertifikatskette",
         "commonName": "Common Name",
         "status": "Status",
-        "uploaded": "Manuell hochgeladen",
+        "uploaded": {
+          "label": "Manuell hochgeladen",
+          "yes": "Ja",
+          "no": "Nein"
+        },
         "timestamp": {
           "rejected": "Letzter Fehlschlag",
           "approved": "Freigegeben am"

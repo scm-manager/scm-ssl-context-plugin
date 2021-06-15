@@ -60,7 +60,7 @@ public class SSLContextResource {
 
   static final String MEDIA_TYPE = VndMediaType.PREFIX + "ssl-context" + VndMediaType.SUFFIX;
   @SuppressWarnings("java:S115")
-  private static final int _50_KB = 50000;
+  private static final int UPLOAD_LIMIT_BYTES = 50000;
 
   private final CertificateStore store;
   private final CertificateCollectionMapper mapper;
@@ -220,9 +220,9 @@ public class SSLContextResource {
 
   @SuppressWarnings("UnstableApiUsage")
   private Certificate extractCertFromInput(InputStream is) throws IOException {
-    InputStream lis = ByteStreams.limit(is, _50_KB + 1L);
+    InputStream lis = ByteStreams.limit(is, UPLOAD_LIMIT_BYTES + 1L);
     byte[] encoded = IOUtils.toByteArray(lis);
-    doThrow().violation("File too large").when(encoded.length > _50_KB);
+    doThrow().violation("File too large").when(encoded.length > UPLOAD_LIMIT_BYTES);
     Certificate cert = new Certificate(encoded, Certificate.Error.UNKNOWN);
     validateFileIsX509Cert(cert);
     return cert;

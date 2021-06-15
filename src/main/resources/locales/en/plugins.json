@@ -6,7 +6,11 @@
       "column": {
         "chain": "Certificate Chain",
         "commonName": "Common Name",
-        "uploaded": "Manually uploaded",
+        "uploaded": {
+          "label": "Manually uploaded",
+          "yes": "Yes",
+          "no": "No"
+        },
         "timestamp": {
           "rejected": "Last Failure",
           "approved": "Approved On"

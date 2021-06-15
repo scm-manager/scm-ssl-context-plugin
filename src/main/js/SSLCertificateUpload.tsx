@@ -39,7 +39,7 @@ type Props = {
   refresh: () => void;
 };
 
-const fileSizeLimit = 50000;
+const fileSizeLimitBytes = 50000;
 
 const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
   const [t] = useTranslation("plugins");
@@ -47,27 +47,23 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
   const [file, setFile] = useState<File>();
   const [submitNotification, setSubmitNotification] = useState(false);
 
-  const renderNotifications = () => {
-    if (submitNotification) {
-      return (
+  const notifications = (
+    <>
+      {submitNotification && (
         <Notification onClose={() => setSubmitNotification(false)}>
           {t("scm-ssl-context-plugin.upload.submitNotification")}
         </Notification>
-      );
-    }
-    if (error) {
-      return <ErrorNotification error={error} />;
-    }
-  };
+      )}
+      {error && <ErrorNotification error={error} />}
+    </>
+  );
 
-  const isValid = () => {
-    return file && file.size < fileSizeLimit;
-  };
+  const isValid = file && file.size < fileSizeLimitBytes;
 
   const submit = () => {
     const options: RequestInit = {
       method: "POST",
-      headers: {"Content-Type": "application/octet-stream"},
+      headers: { "Content-Type": "application/octet-stream" },
       body: file
     };
     setSubmitNotification(false);
@@ -82,20 +78,18 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
     <>
       <Subtitle subtitle={t("scm-ssl-context-plugin.upload.subtitle")} className="mb-3" />
       <FileInput
-        onChange={(event: ChangeEvent<HTMLInputElement>) => {
-          setFile(event.target?.files?.[0]);
-        }}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target?.files?.[0])}
         label={t("scm-ssl-context-plugin.upload.label")}
         helpText={t("scm-ssl-context-plugin.upload.helpText")}
       />
-      {file && file?.size > fileSizeLimit && (
+      {file && file.size > fileSizeLimitBytes ? (
         <Notification type="danger">{t("scm-ssl-context-plugin.upload.fileLimit")}</Notification>
-      )}
-      {renderNotifications()}
+      ) : null}
+      {notifications}
       <Level
         right={
           <SubmitButton
-            disabled={!isValid() || !file}
+            disabled={!isValid || !file}
             label={t("scm-ssl-context-plugin.upload.submit")}
             action={() => submit()}
             scrollToTop={false}
