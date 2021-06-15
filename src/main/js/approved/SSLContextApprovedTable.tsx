@@ -71,7 +71,7 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
           {row => formatAsTimestamp(row.timestamp)}
         </Column>
         <Column header={t("scm-ssl-context-plugin.table.column.uploaded")}>
-          {row => <Checkbox checked={row.uploaded} />}
+          {row => <Checkbox checked={row.uploaded} disabled={true} />}
         </Column>
         <Column header="">
           {row => <a onClick={() => openModal(row)}>{t("scm-ssl-context-plugin.table.details")}</a>}

@@ -122,7 +122,7 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
           </tr>
           <tr>
             <th>{t("scm-ssl-context-plugin.table.column.uploaded")}</th>
-            <td>{selectedCert.uploaded && <Checkbox checked={true} />}</td>
+            <td>{selectedCert.uploaded && <Checkbox checked={true} disabled={true} />}</td>
           </tr>
           <tr>
             <th>{t("scm-ssl-context-plugin.table.column.timestamp.approved")}</th>
