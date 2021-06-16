@@ -39,6 +39,7 @@ import java.util.List;
 
 import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
+import static com.cloudogu.sslcontext.Certificate.Status.APPROVED;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -91,11 +92,32 @@ class CertificateStoreTest {
       assertThat(certificateStore.getAllRejected().size()).isEqualTo(1);
       assertThat(certificateStore.getAllRejected().get(0).getFingerprint()).isEqualTo("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
     }
+
+    @Test
+    void shouldUploadCert() {
+      byte[] encodedCert = "hitchhiker".getBytes();
+
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      assertThrows(AuthorizationException.class, () -> certificateStore.upload(certificate));
+    }
   }
 
   @Nested
   @SubjectAware(value = "arthur", permissions = "sslContext:read,write")
   class ReadWritePermitted {
+
+    @Test
+    void shouldUploadCert() {
+      byte[] encodedCert = "hitchhiker".getBytes();
+
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.upload(certificate);
+
+      assertThat(certificate.getStatus()).isEqualTo(APPROVED);
+      List<Certificate> approvedCerts = certificateStore.getAllApproved();
+      assertThat(approvedCerts).hasSize(1);
+      assertThat(approvedCerts.get(0)).isEqualTo(certificate);
+    }
 
     @Test
     void shouldApproveAndRejectCert() {

@@ -24,3 +24,11 @@ Weitere Ablehnungsgründe wie zum Beispiel `abgelaufen` oder `zurückgezogen` ma
 In der Detailansicht eines Zertifikats können neben dem Server Zertifikat auch Zertifikate aus der Zertifikatskette geprüft und freigegeben werden.
 
 ![Certificate modal](assets/rejected_certificate_modal.png)
+
+### Zertifikate hochladen
+Über die Dateiauswahl können X509 Zertifikate manuell hochgeladen und damit freigegeben werden. 
+Hochgeladene Zertifikate werden beim Hochladen nicht auf ihre Gültigkeit überprüft. 
+Es können nur X509 Zertifikats-Dateien unter 50 KB hochgeladen werden.
+
+![Certificate upload](assets/upload_certificate.png)
+

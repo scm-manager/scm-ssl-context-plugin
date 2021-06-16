@@ -63,12 +63,20 @@ public class CertificateStore {
     rejectedCertStore.put(certificate.getFingerprint(), certificate);
   }
 
+  public void upload(Certificate certificate) {
+    PermissionChecker.checkManageSSLContext();
+    certificate.setUploaded();
+    approveCertificate(certificate);
+  }
+
   public void approve(String serverCertFingerprint, String fingerprint) {
-    manageCertificates(serverCertFingerprint, fingerprint, rejectedCertStore, certificate -> {
-      certificate.approve();
-      approvedCertStore.put(certificate.getFingerprint(), certificate);
-      trustedCertificatesStore.add(certificate);
-    });
+    manageCertificates(serverCertFingerprint, fingerprint, rejectedCertStore, this::approveCertificate);
+  }
+
+  private void approveCertificate(Certificate certificate) {
+    certificate.approve();
+    approvedCertStore.put(certificate.getFingerprint(), certificate);
+    trustedCertificatesStore.add(certificate);
   }
 
   public void reject(String serverCertFingerprint, String fingerprint) {

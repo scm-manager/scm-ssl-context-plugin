@@ -24,3 +24,10 @@ Other reasons for rejection, such as `expired` or `revoked`, actually make a cer
 In the detailed view of a certificate, certificates from the certificate chain can be checked and released in addition to the server certificate.
 
 ![Certificate modal](assets/rejected_certificate_modal.png)
+
+### Upload certificates
+X509 certificates can be uploaded manually via the file selection and thus approved.
+Uploaded certificates are not checked for validity during upload.
+Only X509 certificate files under 50 KB can be uploaded.
+
+![Certificate upload](assets/upload_certificate.png)

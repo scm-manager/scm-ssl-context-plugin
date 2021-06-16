@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { apiClient, Button, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
+import { Button, Checkbox, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import styled from "styled-components";
@@ -118,6 +118,14 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
                   />
                 ))}
               </ul>
+            </td>
+          </tr>
+          <tr>
+            <th>{t("scm-ssl-context-plugin.table.column.uploaded.label")}</th>
+            <td>
+              {selectedCert.uploaded
+                ? t("scm-ssl-context-plugin.table.column.uploaded.yes")
+                : t("scm-ssl-context-plugin.table.column.uploaded.no")}
             </td>
           </tr>
           <tr>
