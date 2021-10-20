@@ -27,4 +27,7 @@
   <permission>
     <value>sslContext:read</value>
   </permission>
+  <permission>
+    <value>sslContext:read,write</value>
+  </permission>
 </permissions>

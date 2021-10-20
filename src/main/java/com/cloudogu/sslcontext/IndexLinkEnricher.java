@@ -50,24 +50,29 @@ public class IndexLinkEnricher implements HalEnricher {
   public void enrich(HalEnricherContext context, HalAppender appender) {
 
     if (PermissionChecker.mayReadSSLContext()) {
-      String rejectedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
-        .method("getAllRejected")
-        .parameters()
-        .href();
-      String approvedSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
-        .method("getAllApproved")
-        .parameters()
-        .href();
-      String uploadSslContextUrl = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class)
-        .method("uploadCertificate")
-        .parameters()
-        .href();
-      appender
-        .linkArrayBuilder("sslContext")
-        .append("rejected", rejectedSslContextUrl)
-        .append("approved", approvedSslContextUrl)
-        .append("upload", uploadSslContextUrl)
-        .build();
+      HalAppender.LinkArrayBuilder linkArrayBuilder = appender.linkArrayBuilder("sslContext");
+      linkArrayBuilder.append("rejected", rejected());
+      linkArrayBuilder.append("approved", approved());
+
+      if (PermissionChecker.mayManageSSLContext()) {
+        linkArrayBuilder.append("upload", upload());
+      }
+      linkArrayBuilder.build();
     }
+  }
+
+  private String upload() {
+    LinkBuilder linkBuilder = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class);
+    return linkBuilder.method("uploadCertificate").parameters().href();
+  }
+
+  private String rejected() {
+    LinkBuilder linkBuilder = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class);
+    return linkBuilder.method("getAllRejected").parameters().href();
+  }
+
+  private String approved() {
+    LinkBuilder linkBuilder = new LinkBuilder(pathInfoStore.get().get(), SSLContextResource.class);
+    return linkBuilder.method("getAllApproved").parameters().href();
   }
 }

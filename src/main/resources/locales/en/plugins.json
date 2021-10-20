@@ -49,6 +49,10 @@
       "read": {
         "displayName": "Access ssl context information",
         "description": "May see the ssl context overview"
+      },
+      "read,write": {
+        "displayName": "Access and manage ssl context information",
+        "description": "May see and manage the ssl context"
       }
     }
   },

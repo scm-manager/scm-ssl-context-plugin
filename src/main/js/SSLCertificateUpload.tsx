@@ -74,8 +74,13 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
       .catch(setError);
   };
 
+  if (!link) {
+    return null;
+  }
+
   return (
     <>
+      <hr />
       <Subtitle subtitle={t("scm-ssl-context-plugin.upload.subtitle")} className="mb-3" />
       <FileInput
         onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target?.files?.[0])}

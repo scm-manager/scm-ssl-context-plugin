@@ -34,11 +34,15 @@ class PermissionChecker {
     return SecurityUtils.getSubject().isPermitted("sslcontext:read");
   }
 
+  public static boolean mayManageSSLContext() {
+    return SecurityUtils.getSubject().isPermitted("sslcontext:read,write");
+  }
+
   public static void checkReadSSLContext() {
     SecurityUtils.getSubject().checkPermission("sslcontext:read");
   }
 
   public static void checkManageSSLContext() {
-    SecurityUtils.getSubject().checkPermission("sslcontext:write");
+    SecurityUtils.getSubject().checkPermission("sslcontext:read,write");
   }
 }

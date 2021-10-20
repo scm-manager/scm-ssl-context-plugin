@@ -64,7 +64,7 @@ export const parseCommonNameFromDN = (dn: string) => {
 };
 
 export const getLinkByName = (links: Links, linkName: string) => {
-  return (links.sslContext as Link[]).filter(l => l.name === linkName)[0].href;
+  return (links.sslContext as Link[]).filter(l => l.name === linkName)[0]?.href;
 };
 
 export const formatAsTimestamp = (date: Date) => {

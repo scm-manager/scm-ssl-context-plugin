@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { Button, Checkbox, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
+import { Button, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import styled from "styled-components";
@@ -82,22 +82,6 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
   const { loading, error, manage } = useManageCertificate(refresh, onClose);
-
-  const renderButton = () => {
-    if (!!selectedCert._links) {
-      if (selectedCert?._links.reject) {
-        return (
-          <Button
-            label={t("scm-ssl-context-plugin.table.reject")}
-            action={() => manage((selectedCert._links.reject as Link).href)}
-            color="info"
-            type="button"
-            loading={loading}
-          />
-        );
-      }
-    }
-  };
 
   const body = (
     <>
@@ -161,7 +145,22 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
     </>
   );
 
-  const footer = <Level right={renderButton()} />;
+  let footer = null;
+  if (selectedCert?._links?.reject) {
+    footer = (
+      <Level
+        right={
+          <Button
+            label={t("scm-ssl-context-plugin.table.reject")}
+            action={() => manage((selectedCert._links.reject as Link).href)}
+            color="info"
+            type="button"
+            loading={loading}
+          />
+        }
+      />
+    );
+  }
 
   return (
     <SizedModal
