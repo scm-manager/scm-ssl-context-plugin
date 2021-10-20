@@ -27,8 +27,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.util.Providers;
 import de.otto.edison.hal.HalRepresentation;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import sonia.scm.api.v2.resources.ScmPathInfo;
 import sonia.scm.api.v2.resources.ScmPathInfoStore;
 
@@ -47,6 +50,8 @@ import static com.cloudogu.sslcontext.Certificate.Status.APPROVED;
 import static com.cloudogu.sslcontext.Certificate.Status.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SubjectAware(value = "trillian", permissions = "sslContext:read,write")
+@ExtendWith(ShiroExtension.class)
 class CertificateCollectionMapperTest {
 
   static {

@@ -26,8 +26,11 @@ package com.cloudogu.sslcontext;
 import com.google.common.io.Resources;
 import com.google.inject.util.Providers;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import sonia.scm.api.v2.resources.ScmPathInfo;
 import sonia.scm.api.v2.resources.ScmPathInfoStore;
 
@@ -40,6 +43,7 @@ import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
 import static com.cloudogu.sslcontext.Certificate.Error.UNKNOWN;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@ExtendWith(ShiroExtension.class)
 class CertificateMapperTest {
 
   static {
@@ -58,6 +62,7 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldMapToDto() throws IOException {
     URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     byte[] encoded = Resources.toByteArray(resource);
@@ -75,6 +80,7 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldMapNestedChainCertsToDto() throws IOException {
     URL resource1 = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     URL resource2 = Resources.getResource("com/cloudogu/sslcontext/cert-002-expired");
@@ -100,6 +106,7 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldMapToDtoWithApproveLink() throws IOException {
     URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     byte[] encoded = Resources.toByteArray(resource);
@@ -113,6 +120,20 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "maximilius", permissions = "sslContext:read")
+  void shouldNotMapToDtoWithApproveLink() throws IOException {
+    URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
+    byte[] encoded = Resources.toByteArray(resource);
+    Certificate certificate = new Certificate(encoded, UNKNOWN);
+
+    CertificateDto dto = mapper.map(certificate);
+
+    assertThat(dto.getLinks().getLinkBy("approve")).isNotPresent();
+  }
+
+  @Test
+  @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldMapToDtoWithRejectLink() throws IOException {
     URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     byte[] encoded = Resources.toByteArray(resource);
@@ -127,6 +148,7 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldNotMapRejectLinkNorApproveLink() throws IOException {
     URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     byte[] encoded = Resources.toByteArray(resource);
@@ -141,6 +163,7 @@ class CertificateMapperTest {
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
+  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
   void shouldMapApproveLinkToChainCert() throws IOException {
     URL resource1 = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     URL resource2 = Resources.getResource("com/cloudogu/sslcontext/cert-002-expired");
