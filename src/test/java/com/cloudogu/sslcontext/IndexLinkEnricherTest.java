@@ -68,7 +68,20 @@ class IndexLinkEnricherTest {
 
   @Test
   @SubjectAware(permissions = "sslContext:read")
-  void shouldAppendLinks() {
+  void shouldAppendReadLinks() {
+    HalAppender.LinkArrayBuilder linkArrayBuilder = mock(HalAppender.LinkArrayBuilder.class, RETURNS_SELF);
+    when(appender.linkArrayBuilder("sslContext")).thenReturn(linkArrayBuilder);
+
+    when(scmPathInfoStore.get()).thenReturn(() -> URI.create("/scm/"));
+    enricher.enrich(context, appender);
+
+    verify(linkArrayBuilder).append("rejected", "/scm/v2/ssl-context/rejected");
+    verify(linkArrayBuilder).append("approved", "/scm/v2/ssl-context/approved");
+  }
+
+  @Test
+  @SubjectAware(permissions = "sslContext:read,write")
+  void shouldAppendManageLinks() {
     HalAppender.LinkArrayBuilder linkArrayBuilder = mock(HalAppender.LinkArrayBuilder.class, RETURNS_SELF);
     when(appender.linkArrayBuilder("sslContext")).thenReturn(linkArrayBuilder);
 

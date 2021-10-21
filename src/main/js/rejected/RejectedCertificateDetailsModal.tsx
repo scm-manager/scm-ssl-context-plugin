@@ -42,22 +42,6 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
   const { loading, error, manage } = useManageCertificate(refresh, onClose);
 
-  const renderButton = () => {
-    if (!!selectedCert._links) {
-      if (selectedCert?._links.approve) {
-        return (
-          <Button
-            label={t("scm-ssl-context-plugin.table.approve")}
-            action={() => manage((selectedCert._links.approve as Link).href)}
-            color="info"
-            type="button"
-            loading={loading}
-          />
-        );
-      }
-    }
-  };
-
   const body = (
     <>
       <ErrorNotification error={error} />
@@ -117,7 +101,22 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
     </>
   );
 
-  const footer = <Level right={renderButton()} />;
+  let footer = null;
+  if (selectedCert?._links?.approve) {
+    footer = (
+      <Level
+        right={
+          <Button
+            label={t("scm-ssl-context-plugin.table.approve")}
+            action={() => manage((selectedCert._links.approve as Link).href)}
+            color="info"
+            type="button"
+            loading={loading}
+          />
+        }
+      />
+    );
+  }
 
   return (
     <SizedModal

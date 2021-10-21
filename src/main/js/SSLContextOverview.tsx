@@ -50,7 +50,6 @@ const SSLContextOverview: FC<Props> = ({ links }) => {
       <SSLContextApprovedOverview {...approvedResult} refresh={refreshApproved} />
       <hr />
       <SSLContextRejectedOverview {...rejectedResult} refresh={refreshApproved} />
-      <hr/>
       <SSLCertificateUpload link={getLinkByName(links, "upload")} refresh={refreshApproved} />
     </>
   );

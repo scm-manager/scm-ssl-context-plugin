@@ -107,7 +107,7 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
 
   private Links createLinks(Certificate certificate, String storedId) {
     Links.Builder linksBuilder = linkingTo();
-    if (certificate.getError() == Certificate.Error.UNKNOWN) {
+    if (PermissionChecker.mayManageSSLContext() && certificate.getError() == Certificate.Error.UNKNOWN) {
       if (certificate.getStatus() == Certificate.Status.REJECTED) {
         linksBuilder.single(link("approve", createLink("approve", storedId, certificate.getFingerprint())));
       } else {

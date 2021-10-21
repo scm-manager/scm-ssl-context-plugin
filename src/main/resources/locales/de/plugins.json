@@ -50,6 +50,10 @@
       "read": {
         "displayName": "SSL Kontext Informationen lesen",
         "description": "Darf SSL Kontext Informationen lesen"
+      },
+      "read,write": {
+        "displayName": "SSL Kontext Informationen lesen und verwalten",
+        "description": "Darf SSL Kontext lesen und verwalten"
       }
     }
   },
