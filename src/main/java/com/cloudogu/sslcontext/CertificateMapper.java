@@ -106,18 +106,15 @@ public abstract class CertificateMapper extends BaseMapper<Certificate, Certific
   }
 
   private Links createLinks(Certificate certificate, String storedId) {
-    if (PermissionChecker.mayManageSSLContext()) {
-      Links.Builder linksBuilder = linkingTo();
-      if (certificate.getError() == Certificate.Error.UNKNOWN) {
-        if (certificate.getStatus() == Certificate.Status.REJECTED) {
-          linksBuilder.single(link("approve", createLink("approve", storedId, certificate.getFingerprint())));
-        } else {
-          linksBuilder.single(link("reject", createLink("reject", storedId, certificate.getFingerprint())));
-        }
+    Links.Builder linksBuilder = linkingTo();
+    if (PermissionChecker.mayManageSSLContext() && certificate.getError() == Certificate.Error.UNKNOWN) {
+      if (certificate.getStatus() == Certificate.Status.REJECTED) {
+        linksBuilder.single(link("approve", createLink("approve", storedId, certificate.getFingerprint())));
+      } else {
+        linksBuilder.single(link("reject", createLink("reject", storedId, certificate.getFingerprint())));
       }
-      return linksBuilder.build();
     }
-    return null;
+    return linksBuilder.build();
   }
 
   private String createLink(String name, String parentId, String id) {

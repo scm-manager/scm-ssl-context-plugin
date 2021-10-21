@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Fixed
-- Display only what can be interacted with ([#4](https://github.com/scm-manager/scm-ssl-context-plugin/pull/4))
+- Add manage permission ([#4](https://github.com/scm-manager/scm-ssl-context-plugin/pull/4))
 
 ## 1.1.0 - 2021-06-16
 ### Added

@@ -102,7 +102,7 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   );
 
   let footer = null;
-  if (selectedCert?._links.approve) {
+  if (selectedCert?._links?.approve) {
     footer = (
       <Level
         right={
