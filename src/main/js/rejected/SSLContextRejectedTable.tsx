@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { Column, comparators, Subtitle, Table, TextColumn, LinkStyleButton } from "@scm-manager/ui-components";
+import { Column, comparators, Subtitle, Table, TextColumn, NoStyleButton } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
@@ -72,7 +72,11 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
           {row => formatAsTimestamp(row.timestamp)}
         </Column>
         <Column header="">
-          {row => <LinkStyleButton className="has-text-info" onClick={() => openModal(row)}>{t("scm-ssl-context-plugin.table.details")}</LinkStyleButton>}
+          {row => (
+            <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
+              {t("scm-ssl-context-plugin.table.details")}
+            </NoStyleButton>
+          )}
         </Column>
       </Table>
     </>

@@ -24,7 +24,7 @@
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import React, { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Column, comparators, LinkStyleButton, Subtitle, Table } from "@scm-manager/ui-components";
+import { Column, comparators, NoStyleButton, Subtitle, Table } from "@scm-manager/ui-components";
 import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
 type Props = {
@@ -79,9 +79,9 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
         </Column>
         <Column header="">
           {row => (
-            <LinkStyleButton className="has-text-info" onClick={() => openModal(row)}>
+            <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}
-            </LinkStyleButton>
+            </NoStyleButton>
           )}
         </Column>
       </Table>
