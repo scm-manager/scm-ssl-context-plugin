@@ -1,0 +1,2 @@
+- type: fixed
+  description: Replace <a> tag by link styled button ([#6](https://github.com/scm-manager/scm-ssl-context-plugin/pull/6))
