@@ -56,11 +56,14 @@ export type Certificate = HalRepresentation & {
 };
 
 export const parseCommonNameFromDN = (dn: string) => {
-  const commonName = dn
+  const commonNames = dn
     .split(",")
-    .filter((s: string) => s.includes("CN="))[0]
-    .trim();
-  return commonName.substr(3, commonName.length + 1);
+    .filter((s: string) => s.includes("CN="));
+  if (commonNames.length > 0) {
+    const commonName = commonNames[0].trim();
+    return commonName.substr(3, commonName.length + 1);
+  }
+  return "Unknown common name";
 };
 
 export const getLinkByName = (links: Links, linkName: string) => {
