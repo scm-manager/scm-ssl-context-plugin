@@ -1,2 +1,0 @@
-- type: fixed
-  description: Fix render error for rejected certificats without common name ([#7](https://github.com/scm-manager/scm-ssl-context-plugin/pull/7))
