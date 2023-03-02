@@ -30,7 +30,8 @@
       "details": "Details",
       "emptyMessage": "No certificates found.",
       "approve": "Approve Certificate",
-      "reject": "Reject Certificate"
+      "reject": "Reject Certificate",
+      "remove": "Delete Certificate"
     },
     "modal": {
       "title": "Certificate Details"

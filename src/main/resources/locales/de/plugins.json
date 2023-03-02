@@ -31,7 +31,8 @@
       "details": "Details",
       "emptyMessage": "Keine Zertifikate gefunden.",
       "approve": "Zertifikat erlauben",
-      "reject": "Zertifikat ablehnen"
+      "reject": "Zertifikat ablehnen",
+      "remove": "Zertifikat löschen"
     },
     "modal": {
       "title": "Zertifikat Details"

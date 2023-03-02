@@ -30,10 +30,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sonia.scm.store.InMemoryDataStore;
-import sonia.scm.store.InMemoryDataStoreFactory;
+import sonia.scm.store.InMemoryByteDataStoreFactory;
 
 import java.util.List;
 
@@ -55,7 +55,7 @@ class CertificateStoreTest {
 
   @BeforeEach
   void initStore() {
-    certificateStore = new CertificateStore(new InMemoryDataStoreFactory(new InMemoryDataStore<Certificate>()), trustedCertificatesStore);
+    certificateStore = new CertificateStore(new InMemoryByteDataStoreFactory(), trustedCertificatesStore);
   }
 
   @Nested
@@ -70,7 +70,8 @@ class CertificateStoreTest {
       certificateStore.put(certificate);
 
       List<Certificate> allCerts = certificateStore.getAllRejected();
-      assertThat(allCerts).containsOnly(certificate);
+      assertThat(allCerts).hasSize(1);
+      assertThat(allCerts.get(0)).usingRecursiveComparison().isEqualTo(certificate);
 
       Certificate singleCert = allCerts.iterator().next();
       assertThat(singleCert.getEncoded()).isEqualTo(encodedCert);
@@ -89,7 +90,7 @@ class CertificateStoreTest {
       Certificate thirdReject = new Certificate(encodedCert, UNKNOWN);
       certificateStore.put(thirdReject);
 
-      assertThat(certificateStore.getAllRejected().size()).isEqualTo(1);
+      assertThat(certificateStore.getAllRejected()).hasSize(1);
       assertThat(certificateStore.getAllRejected().get(0).getFingerprint()).isEqualTo("6ea1ec02523c727c41cb95ee43b4eb14ee7905ea");
     }
 
@@ -116,7 +117,7 @@ class CertificateStoreTest {
       assertThat(certificate.getStatus()).isEqualTo(APPROVED);
       List<Certificate> approvedCerts = certificateStore.getAllApproved();
       assertThat(approvedCerts).hasSize(1);
-      assertThat(approvedCerts.get(0)).isEqualTo(certificate);
+      assertThat(approvedCerts.get(0)).usingRecursiveComparison().isEqualTo(certificate);
     }
 
     @Test
@@ -127,13 +128,29 @@ class CertificateStoreTest {
 
       certificateStore.approve(certificate.getFingerprint(), certificate.getFingerprint());
 
-      verify(trustedCertificatesStore).add(certificate);
-      assertThat(certificateStore.getAllApproved()).contains(certificate);
+      ArgumentCaptor<Certificate> cert = ArgumentCaptor.forClass(Certificate.class);
+      verify(trustedCertificatesStore).add(cert.capture());
+      assertThat(cert.getValue().getEncoded()).isEqualTo(certificate.getEncoded());
+      assertThat(certificateStore.getAllApproved().get(0).getEncoded()).isEqualTo(certificate.getEncoded());
 
       certificateStore.reject(certificate.getFingerprint(), certificate.getFingerprint());
 
-      verify(trustedCertificatesStore).remove(certificate);
-      assertThat(certificateStore.getAllApproved()).doesNotContain(certificate);
+      verify(trustedCertificatesStore).remove(cert.capture());
+      assertThat(cert.getValue().getEncoded()).isEqualTo(certificate.getEncoded());
+      assertThat(certificateStore.getAllApproved()).isEmpty();
+    }
+
+    @Test
+    void shouldRemoveRejectedCert() {
+      byte[] encodedCert = "hitchhiker".getBytes();
+      Certificate certificate = new Certificate(encodedCert, UNKNOWN);
+      certificateStore.put(certificate);
+
+      assertThat(certificateStore.getAllRejected()).hasSize(1);
+
+      certificateStore.removeRejected(certificate.getFingerprint());
+
+      assertThat(certificateStore.getAllRejected()).isEmpty();
     }
   }
 

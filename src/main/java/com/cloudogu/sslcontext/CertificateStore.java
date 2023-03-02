@@ -77,13 +77,23 @@ public class CertificateStore {
     certificate.approve();
     approvedCertStore.put(certificate.getFingerprint(), certificate);
     trustedCertificatesStore.add(certificate);
+    if (rejectedCertStore.get(certificate.getFingerprint()) != null) {
+      rejectedCertStore.remove(certificate.getFingerprint());
+    }
   }
 
   public void reject(String serverCertFingerprint, String fingerprint) {
     manageCertificates(serverCertFingerprint, fingerprint, approvedCertStore, certificate -> {
+      certificate.reject();
+      rejectedCertStore.put(certificate.getFingerprint(), certificate);
       approvedCertStore.remove(certificate.getFingerprint());
       trustedCertificatesStore.remove(certificate);
     });
+  }
+
+  public void removeRejected(String id) {
+    PermissionChecker.checkManageSSLContext();
+    rejectedCertStore.remove(id);
   }
 
   private void manageCertificates(String serverCertFingerprint, String fingerprint, DataStore<Certificate> store, Consumer<Certificate> consumer) {

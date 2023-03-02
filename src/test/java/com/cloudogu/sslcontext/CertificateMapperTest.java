@@ -115,13 +115,14 @@ class CertificateMapperTest {
     CertificateDto dto = mapper.map(certificate);
 
     assertThat(dto.getLinks().getLinkBy("approve").get().getHref()).isEqualTo("api/v2/ssl-context/approve/89c6032d1d457cde44478919989a4fc5758aca9d/89c6032d1d457cde44478919989a4fc5758aca9d");
+    assertThat(dto.getLinks().getLinkBy("remove").get().getHref()).isEqualTo("api/v2/ssl-context/rejected/89c6032d1d457cde44478919989a4fc5758aca9d");
     assertThat(dto.getLinks().getLinkBy("reject")).isNotPresent();
   }
 
   @Test
   @SuppressWarnings("UnstableApiUsage")
   @SubjectAware(value = "maximilius", permissions = "sslContext:read")
-  void shouldNotMapToDtoWithApproveLink() throws IOException {
+  void shouldNotMapToDtoWithApproveLinkWithoutManagePermission() throws IOException {
     URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
     byte[] encoded = Resources.toByteArray(resource);
     Certificate certificate = new Certificate(encoded, UNKNOWN);
@@ -129,6 +130,7 @@ class CertificateMapperTest {
     CertificateDto dto = mapper.map(certificate);
 
     assertThat(dto.getLinks().getLinkBy("approve")).isNotPresent();
+    assertThat(dto.getLinks().getLinkBy("remove")).isNotPresent();
   }
 
   @Test
@@ -144,21 +146,7 @@ class CertificateMapperTest {
 
     assertThat(dto.getLinks().getLinkBy("reject").get().getHref()).isEqualTo("api/v2/ssl-context/reject/89c6032d1d457cde44478919989a4fc5758aca9d/89c6032d1d457cde44478919989a4fc5758aca9d");
     assertThat(dto.getLinks().getLinkBy("approve")).isNotPresent();
-  }
-
-  @Test
-  @SuppressWarnings("UnstableApiUsage")
-  @SubjectAware(value = "trillian", permissions = "sslContext:read,write")
-  void shouldNotMapRejectLinkNorApproveLink() throws IOException {
-    URL resource = Resources.getResource("com/cloudogu/sslcontext/cert-001");
-    byte[] encoded = Resources.toByteArray(resource);
-    Certificate certificate = new Certificate(encoded, EXPIRED);
-    certificate.approve();
-
-    CertificateDto dto = mapper.map(certificate);
-
-    assertThat(dto.getLinks().getLinkBy("reject")).isNotPresent();
-    assertThat(dto.getLinks().getLinkBy("approve")).isNotPresent();
+    assertThat(dto.getLinks().getLinkBy("remove")).isNotPresent();
   }
 
   @Test

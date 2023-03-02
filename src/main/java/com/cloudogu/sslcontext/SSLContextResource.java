@@ -38,6 +38,7 @@ import sonia.scm.web.VndMediaType;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -186,6 +187,33 @@ public class SSLContextResource {
   )
   public Response reject(@PathParam("storedId") String storedId, @PathParam("id") String id) {
     store.reject(storedId, id);
+    return Response.noContent().build();
+  }
+
+  @DELETE
+  @Path("/rejected/{id}")
+  @Operation(
+    summary = "Remove single rejected certificate",
+    description = "Removes a single rejected server certificate",
+    tags = "SSL Context Plugin",
+    operationId = "ssl_context_remove_rejected_cert"
+  )
+  @ApiResponse(
+    responseCode = "204",
+    description = "success"
+  )
+  @ApiResponse(responseCode = "401", description = "not authenticated / invalid credentials")
+  @ApiResponse(responseCode = "403", description = "not authorized, the current user has no privileges to write the data")
+  @ApiResponse(
+    responseCode = "500",
+    description = "internal server error",
+    content = @Content(
+      mediaType = VndMediaType.ERROR_TYPE,
+      schema = @Schema(implementation = ErrorDto.class)
+    )
+  )
+  public Response removeRejected(@PathParam("id") String id) {
+    store.removeRejected(id);
     return Response.noContent().build();
   }
 

@@ -28,6 +28,7 @@ import { Certificate, formatAsTimestamp } from "../certificates";
 import { Link } from "@scm-manager/ui-types";
 import { ChainEntry, SizedModal } from "../approved/ApprovedCertificateDetailsModal";
 import { useManageCertificate } from "../useManageCertificate";
+import { useRemoveRejectedCertificate } from "../useRemoveRejectedCertificate";
 
 type Props = {
   active: boolean;
@@ -41,10 +42,11 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
   const { loading, error, manage } = useManageCertificate(refresh, onClose);
+  const { loading: loadingRemoved, error: errorRemoved, remove } = useRemoveRejectedCertificate(refresh, onClose);
 
   const body = (
     <>
-      <ErrorNotification error={error} />
+      <ErrorNotification error={error || errorRemoved} />
       <table className="table">
         <tbody>
           <tr>
@@ -102,17 +104,30 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   );
 
   let footer = null;
-  if (selectedCert?._links?.approve) {
+  if (selectedCert?._links?.approve || selectedCert?._links?.remove) {
     footer = (
       <Level
         right={
-          <Button
-            label={t("scm-ssl-context-plugin.table.approve")}
-            action={() => manage((selectedCert._links.approve as Link).href)}
-            color="info"
-            type="button"
-            loading={loading}
-          />
+          <>
+            {selectedCert?._links?.approve ? (
+              <Button
+                label={t("scm-ssl-context-plugin.table.approve")}
+                action={() => manage((selectedCert._links.approve as Link).href)}
+                color="info"
+                type="button"
+                loading={loading}
+              />
+            ) : null}
+            {selectedCert?._links?.remove ? (
+              <Button
+                label={t("scm-ssl-context-plugin.table.remove")}
+                action={() => remove((selectedCert._links.remove as Link).href)}
+                color="info"
+                type="button"
+                loading={loadingRemoved}
+              />
+            ) : null}
+          </>
         }
       />
     );
