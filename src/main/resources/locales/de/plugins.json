@@ -31,8 +31,11 @@
       "details": "Details",
       "emptyMessage": "Keine Zertifikate gefunden.",
       "approve": "Zertifikat erlauben",
+      "approveNotification": "Das Zertifikat wurde erfolgreich erlaubt.",
       "reject": "Zertifikat ablehnen",
-      "remove": "Zertifikat löschen"
+      "rejectNotification": "Das Zertifikat wurde erfolgreich abgelehnt.",
+      "delete": "Zertifikat löschen",
+      "deleteNotification": "Das Zertifikat wurde erfolgreich gelöscht."
     },
     "modal": {
       "title": "Zertifikat Details"

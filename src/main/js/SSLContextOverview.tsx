@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { Links } from "@scm-manager/ui-types";
 import { useTranslation } from "react-i18next";
-import { Title } from "@scm-manager/ui-components";
+import { Notification, Title } from "@scm-manager/ui-components";
 import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
 import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
 import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
@@ -37,6 +37,7 @@ type Props = {
 
 const SSLContextOverview: FC<Props> = ({ links }) => {
   const [t] = useTranslation("plugins");
+  const [successMessage, setSuccessMessage] = useState<string | undefined>("");
   const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
   const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
 
@@ -48,9 +49,14 @@ const SSLContextOverview: FC<Props> = ({ links }) => {
   return (
     <>
       <Title title={t("scm-ssl-context-plugin.title")} />
-      <SSLContextApprovedOverview {...approvedResult} refresh={refresh} />
+      {successMessage && (
+        <Notification type="success" onClose={() => setSuccessMessage("")}>
+          {successMessage}
+        </Notification>
+      )}
+      <SSLContextApprovedOverview {...approvedResult} refresh={refresh} successMessage={setSuccessMessage} />
       <hr />
-      <SSLContextRejectedOverview {...rejectedResult} refresh={refresh} />
+      <SSLContextRejectedOverview {...rejectedResult} refresh={refresh} successMessage={setSuccessMessage} />
       <SSLCertificateUpload link={getLinkByName(links, "upload")} refresh={refresh} />
     </>
   );

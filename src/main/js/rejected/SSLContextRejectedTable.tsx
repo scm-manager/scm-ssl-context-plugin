@@ -22,7 +22,14 @@
  * SOFTWARE.
  */
 import React, { FC, useState } from "react";
-import { Column, comparators, Subtitle, Table, TextColumn, NoStyleButton } from "@scm-manager/ui-components";
+import {
+  Column,
+  comparators,
+  Subtitle,
+  Table,
+  TextColumn,
+  NoStyleButton
+} from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
@@ -30,9 +37,10 @@ import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
 type Props = {
   chain: Certificate[];
   refresh: () => void;
+  successMessage: (successMessage?: string) => void;
 };
 
-const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
+const SSLContextRejectedTable: FC<Props> = ({ chain, refresh, successMessage }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -46,7 +54,12 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
     <>
       {selectedCertificate ? (
         <RejectedCertificateDetailsModal
-          onClose={() => setSelectedCertificate(undefined)}
+          onClose={message => {
+            setSelectedCertificate(undefined);
+            if (typeof message === "string") {
+              successMessage(message);
+            }
+          }}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
           refresh={refresh}
@@ -71,7 +84,7 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh }) => {
         >
           {row => formatAsTimestamp(row.timestamp)}
         </Column>
-        <Column header="">
+        <Column className="has-text-right" header="">
           {row => (
             <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}

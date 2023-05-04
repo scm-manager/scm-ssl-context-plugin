@@ -32,7 +32,7 @@ import { useRemoveRejectedCertificate } from "../useRemoveRejectedCertificate";
 
 type Props = {
   active: boolean;
-  onClose: () => void;
+  onClose: (successMessage?: string) => void;
   certificate: Certificate;
   refresh: () => void;
 };
@@ -41,7 +41,9 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
-  const { loading, error, manage } = useManageCertificate(refresh, onClose);
+  const { loading, error, manage } = useManageCertificate(refresh, () =>
+    onClose(t("scm-ssl-context-plugin.table.approveNotification"))
+  );
   const { loading: loadingRemoved, error: errorRemoved, remove } = useRemoveRejectedCertificate(refresh, onClose);
 
   const body = (
@@ -120,7 +122,7 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
             ) : null}
             {selectedCert?._links?.remove ? (
               <Button
-                label={t("scm-ssl-context-plugin.table.remove")}
+                label={t("scm-ssl-context-plugin.table.delete")}
                 action={() => remove((selectedCert._links.remove as Link).href)}
                 color="info"
                 type="button"

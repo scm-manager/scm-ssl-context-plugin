@@ -31,7 +31,7 @@ import {
   SubmitButton,
   Subtitle
 } from "@scm-manager/ui-components";
-import React, { ChangeEvent, FC, useState } from "react";
+import React, { ChangeEvent, FC, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 type Props = {
@@ -46,17 +46,7 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
   const [error, setError] = useState<Error | undefined>();
   const [file, setFile] = useState<File>();
   const [submitNotification, setSubmitNotification] = useState(false);
-
-  const notifications = (
-    <>
-      {submitNotification && (
-        <Notification onClose={() => setSubmitNotification(false)}>
-          {t("scm-ssl-context-plugin.upload.submitNotification")}
-        </Notification>
-      )}
-      {error && <ErrorNotification error={error} />}
-    </>
-  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isValid = file && file.size < fileSizeLimitBytes;
 
@@ -66,11 +56,18 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
       headers: { "Content-Type": "application/octet-stream" },
       body: file
     };
+    setError(undefined);
     setSubmitNotification(false);
     apiClient
       .httpRequestWithBinaryBody(options, link)
       .then(refresh)
-      .then(() => setSubmitNotification(true))
+      .then(() => {
+        setSubmitNotification(true);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+          fileInputRef.current.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      })
       .catch(setError);
   };
 
@@ -82,15 +79,24 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
     <>
       <hr />
       <Subtitle subtitle={t("scm-ssl-context-plugin.upload.subtitle")} className="mb-3" />
-      <FileInput
-        onChange={(event: ChangeEvent<HTMLInputElement>) => setFile(event.target?.files?.[0])}
-        label={t("scm-ssl-context-plugin.upload.label")}
-        helpText={t("scm-ssl-context-plugin.upload.helpText")}
-      />
+      {submitNotification && (
+        <Notification type="success" onClose={() => setSubmitNotification(false)}>
+          {t("scm-ssl-context-plugin.upload.submitNotification")}
+        </Notification>
+      )}
       {file && file.size > fileSizeLimitBytes ? (
         <Notification type="danger">{t("scm-ssl-context-plugin.upload.fileLimit")}</Notification>
       ) : null}
-      {notifications}
+      {error && <ErrorNotification error={error} />}
+      <FileInput
+        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+          setFile(event.target?.files?.[0]);
+          setError(undefined);
+        }}
+        label={t("scm-ssl-context-plugin.upload.label")}
+        helpText={t("scm-ssl-context-plugin.upload.helpText")}
+        ref={fileInputRef}
+      />
       <Level
         right={
           <SubmitButton

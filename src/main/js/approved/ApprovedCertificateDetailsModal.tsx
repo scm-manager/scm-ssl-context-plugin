@@ -72,7 +72,7 @@ export const ChainEntry: FC<ChainEntryProps> = ({ certificate, depth, selected, 
 
 type Props = {
   active: boolean;
-  onClose: () => void;
+  onClose: (successMessage?: string) => void;
   certificate: Certificate;
   refresh: () => void;
 };
@@ -81,7 +81,9 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   const [t] = useTranslation("plugins");
   const chain = [certificate, ...certificate._embedded.chain].reverse();
   const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
-  const { loading, error, manage } = useManageCertificate(refresh, onClose);
+  const { loading, error, manage } = useManageCertificate(refresh, () => {
+    onClose(t("scm-ssl-context-plugin.table.rejectNotification"));
+  });
 
   const body = (
     <>

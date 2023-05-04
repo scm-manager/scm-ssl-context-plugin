@@ -31,9 +31,10 @@ type Props = {
   loading: boolean;
   error?: Error;
   refresh: () => void;
+  successMessage: (successMessage?: string) => void;
 };
 
-const SSLContextApprovedOverview: FC<Props> = ({ data, error, loading, refresh }) => {
+const SSLContextApprovedOverview: FC<Props> = ({ data, error, loading, refresh, successMessage }) => {
   if (error) {
     return <ErrorNotification error={error} />;
   }
@@ -42,7 +43,13 @@ const SSLContextApprovedOverview: FC<Props> = ({ data, error, loading, refresh }
     return <Loading />;
   }
 
-  return <SSLContextApprovedTable chain={(data?._embedded.chain as Certificate[]) || []} refresh={refresh} />;
+  return (
+    <SSLContextApprovedTable
+      chain={(data?._embedded.chain as Certificate[]) || []}
+      refresh={refresh}
+      successMessage={successMessage}
+    />
+  );
 };
 
 export default SSLContextApprovedOverview;

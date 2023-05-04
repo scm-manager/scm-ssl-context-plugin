@@ -24,8 +24,10 @@
 
 import { useState } from "react";
 import { apiClient } from "@scm-manager/ui-components";
+import { useTranslation } from "react-i18next";
 
-export const useRemoveRejectedCertificate = (refresh: () => void, onClose: () => void) => {
+export const useRemoveRejectedCertificate = (refresh: () => void, onClose: (successMessage?: string) => void) => {
+  const [t] = useTranslation("plugins");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
@@ -35,9 +37,9 @@ export const useRemoveRejectedCertificate = (refresh: () => void, onClose: () =>
       .delete(link)
       .then(refresh)
       .then(() => setLoading(false))
-      .then(onClose)
+      .then(() => onClose(t("scm-ssl-context-plugin.table.deleteNotification")))
       .catch(setError);
-  }
+  };
 
   return { loading, error, remove };
 };

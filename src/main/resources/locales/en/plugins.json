@@ -30,8 +30,11 @@
       "details": "Details",
       "emptyMessage": "No certificates found.",
       "approve": "Approve Certificate",
+      "approveNotification": "The certificate was approved successfully.",
       "reject": "Reject Certificate",
-      "remove": "Delete Certificate"
+      "rejectNotification": "The certificate was rejected successfully.",
+      "delete": "Delete Certificate",
+      "deleteNotification": "The certificate was deleted successfully."
     },
     "modal": {
       "title": "Certificate Details"

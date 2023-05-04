@@ -31,9 +31,10 @@ type Props = {
   loading: boolean;
   error?: Error;
   refresh: () => void;
+  successMessage: (successMessage?: string) => void;
 };
 
-const SSLContextRejectedOverview: FC<Props> = ({ data, loading, error, refresh }) => {
+const SSLContextRejectedOverview: FC<Props> = ({ data, loading, error, refresh, successMessage }) => {
   if (error) {
     return <ErrorNotification error={error} />;
   }
@@ -42,7 +43,13 @@ const SSLContextRejectedOverview: FC<Props> = ({ data, loading, error, refresh }
     return <Loading />;
   }
 
-  return <SSLContextRejectedTable chain={(data?._embedded.chain as Certificate[]) || []} refresh={refresh} />;
+  return (
+    <SSLContextRejectedTable
+      chain={(data?._embedded.chain as Certificate[]) || []}
+      refresh={refresh}
+      successMessage={successMessage}
+    />
+  );
 };
 
 export default SSLContextRejectedOverview;

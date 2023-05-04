@@ -30,9 +30,10 @@ import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 type Props = {
   chain: Certificate[];
   refresh: () => void;
+  successMessage: (successMessage?: string) => void;
 };
 
-const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
+const SSLContextApprovedTable: FC<Props> = ({ chain, refresh, successMessage }) => {
   const [t] = useTranslation("plugins");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate>();
   const openModal = (certificate: Certificate) => {
@@ -46,7 +47,12 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
     <>
       {selectedCertificate ? (
         <ApprovedCertificateDetailsModal
-          onClose={() => setSelectedCertificate(undefined)}
+          onClose={message => {
+            setSelectedCertificate(undefined);
+            if (typeof message === "string") {
+              successMessage(message);
+            }
+          }}
           certificate={selectedCertificate}
           active={!!selectedCertificate}
           refresh={refresh}
@@ -77,7 +83,7 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh }) => {
               : t("scm-ssl-context-plugin.table.column.uploaded.no")
           }
         </Column>
-        <Column header="">
+        <Column className="has-text-right" header="">
           {row => (
             <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}

@@ -35,9 +35,9 @@ export const useManageCertificate = (refresh: () => void, onClose: () => void) =
       .post(link)
       .then(refresh)
       .then(() => setLoading(false))
-      .then(onClose)
+      .then(() => onClose())
       .catch(setError);
-  }
+  };
 
   return { loading, error, manage };
 };
