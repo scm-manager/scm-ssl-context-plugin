@@ -1,4 +1,0 @@
-- type: fixed
-  description: Reset error notifications and the form when selecting a new file
-- type: changed
-  description: Show success notifications when managing certificates
