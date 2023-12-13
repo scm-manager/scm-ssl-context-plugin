@@ -32,7 +32,7 @@ const SSLContextNavigation: FC = () => {
 
   const matchesSslContext = (route: any) => {
     const regex = new RegExp("/admin/ssl-context/.+");
-    return route.location.pathname.match(regex);
+    return !!route.location.pathname.match(regex);
   };
 
   return (
