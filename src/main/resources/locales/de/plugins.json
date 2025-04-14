@@ -1,7 +1,7 @@
 {
   "scm-ssl-context-plugin": {
-    "title": "SSL Kontext",
-    "navLink": "SSL Kontext",
+    "title": "SSL-Kontext",
+    "navLink": "SSL-Kontext",
     "table": {
       "column": {
         "chain": "Zertifikatskette",
@@ -21,8 +21,8 @@
         "issuerDN": "Issuer DN",
         "notBefore": "Gültig Ab",
         "notAfter": "Gültig Bis",
-        "signAlg": "Signatur Algorithmus",
-        "fingerprint": "SHA1 Fingerabdruck"
+        "signAlg": "Signatur-Algorithmus",
+        "fingerprint": "SHA1-Fingerabdruck"
       },
       "title": {
         "rejected": "Abgelehnte Zertifikate",
@@ -38,7 +38,7 @@
       "deleteNotification": "Das Zertifikat wurde erfolgreich gelöscht."
     },
     "modal": {
-      "title": "Zertifikat Details"
+      "title": "Zertifikat-Details"
     },
     "upload": {
       "subtitle": "Zertifikat hochladen",
@@ -52,19 +52,19 @@
   "permissions": {
     "sslContext": {
       "read": {
-        "displayName": "SSL Kontext Informationen lesen",
-        "description": "Darf SSL Kontext Informationen lesen"
+        "displayName": "SSL-Kontextinformationen lesen",
+        "description": "Darf SSL-Kontextinformationen lesen"
       },
       "read,write": {
-        "displayName": "SSL Kontext Informationen lesen und verwalten",
-        "description": "Darf SSL Kontext lesen und verwalten"
+        "displayName": "SSL-Kontextinformationen lesen und verwalten",
+        "description": "Darf SSL-Kontext lesen und verwalten"
       }
     }
   },
   "errors": {
     "FySYQ3xiD1": {
       "displayName": "Zertifikatsfehler",
-      "description": "Beim Verwalten oder Validieren Ihrer Zertifikate ist ein Fehler aufgetreten. Prüfen Sie die Server Logs für mehr Informationen."
+      "description": "Beim Verwalten oder Validieren Ihrer Zertifikate ist ein Fehler aufgetreten. Prüfen Sie die Server-Logs für mehr Informationen."
     }
   }
 }

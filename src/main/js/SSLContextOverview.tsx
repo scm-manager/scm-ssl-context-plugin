@@ -17,7 +17,7 @@
 import React, { FC, useState } from "react";
 import { Links } from "@scm-manager/ui-types";
 import { useTranslation } from "react-i18next";
-import { Notification, Title } from "@scm-manager/ui-components";
+import { Notification, Title, useDocumentTitle } from "@scm-manager/ui-core";
 import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
 import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
 import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
@@ -33,6 +33,7 @@ const SSLContextOverview: FC<Props> = ({ links }) => {
   const [successMessage, setSuccessMessage] = useState<string | undefined>("");
   const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
   const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
+  useDocumentTitle(t("scm-ssl-context-plugin.title"));
 
   const refresh = () => {
     rejectedResult.refresh();

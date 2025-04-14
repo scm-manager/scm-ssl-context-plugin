@@ -31,7 +31,7 @@ dependencies {
 }
 
 scmPlugin {
-  scmVersion = "3.0.0"
+  scmVersion = "3.7.0"
   displayName = "SSL Context Plugin"
   description = "Provides information about SSL connections like rejected certificates"
 
