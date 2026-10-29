@@ -15,19 +15,19 @@
  */
 
 plugins {
-  id 'org.scm-manager.smp' version '0.17.2'
+  id 'org.scm-manager.smp' version '0.20.0'
 }
 
 dependencies {
   testImplementation 'org.bouncycastle:bcprov-jdk15on:1.70'
   testImplementation 'com.github.sdorra:junit-shiro-extension:1.0.1'
   // we don't want the transitive dependencies in the resulting smp ...
-  implementation("org.jboss.resteasy:resteasy-multipart-provider:7.0.1.Final") {
+  implementation("org.jboss.resteasy:resteasy-multipart-provider:6.2.15.Final") {
     transitive = false
   }
   implementation("commons-io:commons-io:2.21.0")
   // ... but we want them on the classpath for testing
-  testImplementation "org.jboss.resteasy:resteasy-multipart-provider:7.0.1.Final"
+  testImplementation "org.jboss.resteasy:resteasy-multipart-provider:6.2.15.Final"
 }
 
 scmPlugin {
