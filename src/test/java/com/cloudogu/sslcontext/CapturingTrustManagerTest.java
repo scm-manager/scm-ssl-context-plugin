@@ -29,11 +29,11 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static com.cloudogu.sslcontext.CertTestUtil.createIssuerCertificate;
 import static com.cloudogu.sslcontext.CertTestUtil.createKeyPair;
 import static com.cloudogu.sslcontext.CertTestUtil.createX509Cert;
 import static com.cloudogu.sslcontext.Certificate.Error.EXPIRED;
@@ -49,10 +49,18 @@ class CapturingTrustManagerTest {
   private static final char[] PASSWORD = "test".toCharArray();
 
   private CertificateStore store;
+  private KeyPair issuerKeyPair;
+  private X509Certificate issuer;
+  private KeyStore trustStore;
 
   @BeforeEach
-  void setUpStore() {
+  void setUp() throws Exception {
     store = new CertificateStore(new InMemoryDataStoreFactory(), new TrustedCertificatesStore(new InMemoryBlobStoreFactory()));
+    issuerKeyPair = createKeyPair();
+    issuer = createIssuerCertificate(issuerKeyPair, Instant.now().minus(1, ChronoUnit.DAYS), Instant.now().plus(1, ChronoUnit.DAYS));
+    trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    trustStore.load(null, null);
+    trustStore.setCertificateEntry("issuer", issuer);
   }
 
   @Test
@@ -64,7 +72,10 @@ class CapturingTrustManagerTest {
 
     echoServer.start(keyStore, PASSWORD);
 
-    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
+    trustStore.setCertificateEntry("issuer", createX509Cert(
+      createKeyPair(), Instant.now().minus(1, ChronoUnit.DAYS), Instant.now().plus(1, ChronoUnit.DAYS)
+    ));
+    SSLContextProvider sslContextProvider = createSSLContextProvider(trustStore);
     echoServer.send(sslContextProvider, "hi");
 
     assertRejected(UNKNOWN);
@@ -79,7 +90,7 @@ class CapturingTrustManagerTest {
 
     echoServer.start(keyStore, PASSWORD);
 
-    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
+    SSLContextProvider sslContextProvider = createSSLContextProvider(trustStore);
     echoServer.send(sslContextProvider, "hello");
 
     assertRejected(NOT_YET_VALID);
@@ -94,16 +105,30 @@ class CapturingTrustManagerTest {
 
     echoServer.start(keyStore, PASSWORD);
 
-    SSLContextProvider sslContextProvider = createSSLContextProvider(keyStore);
+    SSLContextProvider sslContextProvider = createSSLContextProvider(trustStore);
     echoServer.send(sslContextProvider, "hello");
 
     assertRejected(EXPIRED);
   }
 
-  private void assertRejected(Certificate.Error unknown) {
+  @Test
+  void shouldAcceptCertificateFromTrustedIssuer(EchoServer echoServer) throws Exception {
+    KeyStore keyStore = createKeyStore(
+      Instant.now().minus(1, ChronoUnit.MINUTES),
+      Instant.now().plus(1, ChronoUnit.MINUTES)
+    );
+    echoServer.start(keyStore, PASSWORD);
+
+    echoServer.sendSuccessfully(createSSLContextProvider(trustStore).get(), "hello");
+
+    assertThat(store.getAllRejected()).isEmpty();
+  }
+
+  private void assertRejected(Certificate.Error expectedError) {
+    assertThat(store.getAllRejected()).hasSize(1);
     Certificate cert = store.getAllRejected().iterator().next();
     assertThat(cert.getStatus()).isEqualTo(REJECTED);
-    assertThat(cert.getError()).isEqualTo(unknown);
+    assertThat(cert.getError()).isEqualTo(expectedError);
   }
 
   private SSLContextProvider createSSLContextProvider(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException {
@@ -112,14 +137,7 @@ class CapturingTrustManagerTest {
     );
   }
 
-  private SSLContextProvider createSSLContextProvider() throws NoSuchAlgorithmException, KeyStoreException {
-    return createSSLContextProvider(null);
-  }
-
   private X509TrustManager getTrustManager(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException {
-    if (trustStore == null) {
-      return null;
-    }
     TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
     trustManagerFactory.init(trustStore);
     return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
@@ -127,14 +145,10 @@ class CapturingTrustManagerTest {
 
   private KeyStore createKeyStore(Instant start, Instant end) throws Exception {
     KeyPair keyPair = createKeyPair();
-    X509Certificate cert = createX509Cert(keyPair, start, end);
-    return saveCert(cert, keyPair.getPrivate());
-  }
-
-  private KeyStore saveCert(X509Certificate cert, PrivateKey key) throws Exception {
+    X509Certificate cert = createX509Cert(keyPair, start, end, issuer, issuerKeyPair.getPrivate());
     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
     keyStore.load(null, null);
-    keyStore.setKeyEntry("hitchhiker_cert", key, PASSWORD, new java.security.cert.Certificate[]{cert});
+    keyStore.setKeyEntry("hitchhiker_cert", keyPair.getPrivate(), PASSWORD, new java.security.cert.Certificate[]{cert, issuer});
     return keyStore;
   }
 }

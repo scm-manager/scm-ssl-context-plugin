@@ -74,10 +74,16 @@ public class EchoServer {
   }
 
   public void send(SSLContext context, String message) {
-    try (Socket localhost = connect(context)) {
-      localhost.getOutputStream().write(message.getBytes());
+    try {
+      sendSuccessfully(context, message);
     } catch (IOException ex) {
       // do nothing, we know there comes a exception
+    }
+  }
+
+  public void sendSuccessfully(SSLContext context, String message) throws IOException {
+    try (Socket localhost = connect(context)) {
+      localhost.getOutputStream().write(message.getBytes());
     }
   }
 
