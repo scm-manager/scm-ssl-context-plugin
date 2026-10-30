@@ -31,12 +31,11 @@ dependencies {
 }
 
 scmPlugin {
-  scmVersion = "3.7.0"
-  displayName = "SSL Context Plugin"
+  scmVersion = "4.0.0-SNAPSHOT"
+  displayName = "SSL Context"
   description = "Provides information about SSL connections like rejected certificates"
-
-   author = "Eduard Heimbuch"
-   category = "Administration"
+  author = "Eduard Heimbuch"
+  category = "Administration"
 
   openapi {
     packages = [

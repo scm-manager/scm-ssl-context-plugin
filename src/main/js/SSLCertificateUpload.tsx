@@ -14,17 +14,10 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-import {
-  apiClient,
-  ErrorNotification,
-  FileInput,
-  Level,
-  Notification,
-  SubmitButton,
-  Subtitle
-} from "@scm-manager/ui-components";
 import React, { ChangeEvent, FC, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { apiClient, FileInput } from "@scm-manager/ui-components";
+import { Button, ErrorNotification, Notification, Subtitle } from "@scm-manager/ui-core";
 
 type Props = {
   link: string;
@@ -46,7 +39,7 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
     const options: RequestInit = {
       method: "POST",
       headers: { "Content-Type": "application/octet-stream" },
-      body: file
+      body: file,
     };
     setError(undefined);
     setSubmitNotification(false);
@@ -89,16 +82,15 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
         helpText={t("scm-ssl-context-plugin.upload.helpText")}
         ref={fileInputRef}
       />
-      <Level
-        right={
-          <SubmitButton
-            disabled={!isValid || !file}
-            label={t("scm-ssl-context-plugin.upload.submit")}
-            action={() => submit()}
-            scrollToTop={false}
-          />
-        }
-      />
+      <Button
+        className="is-flex ml-auto"
+        variant="primary"
+        disabled={!isValid || !file}
+        onClick={() => submit()}
+        type="submit"
+      >
+        {t("scm-ssl-context-plugin.upload.submit")}
+      </Button>
     </>
   );
 };

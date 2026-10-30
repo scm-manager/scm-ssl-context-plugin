@@ -15,7 +15,7 @@
  */
 
 import React, { FC } from "react";
-import { ErrorNotification, Loading } from "@scm-manager/ui-components";
+import { ErrorNotification, Loading } from "@scm-manager/ui-core";
 import { Certificate, CertificateCollection } from "../certificates";
 import SSLContextApprovedTable from "./SSLContextApprovedTable";
 

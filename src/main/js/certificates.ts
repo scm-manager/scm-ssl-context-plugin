@@ -14,8 +14,8 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-import { HalRepresentation, Link, Links } from "@scm-manager/ui-types";
 import { format } from "date-fns";
+import { HalRepresentation, Link, Links } from "@scm-manager/ui-types";
 
 type CertificateError =
   | "CERTIFICATE_UNKNOWN"
@@ -48,9 +48,7 @@ export type Certificate = HalRepresentation & {
 };
 
 export const parseCommonNameFromDN = (dn: string) => {
-  const commonNames = dn
-    .split(",")
-    .filter((s: string) => s.includes("CN="));
+  const commonNames = dn.split(",").filter((s: string) => s.includes("CN="));
   if (commonNames.length > 0) {
     const commonName = commonNames[0].trim();
     return commonName.substr(3, commonName.length + 1);
@@ -59,7 +57,7 @@ export const parseCommonNameFromDN = (dn: string) => {
 };
 
 export const getLinkByName = (links: Links, linkName: string) => {
-  return (links.sslContext as Link[]).filter(l => l.name === linkName)[0]?.href;
+  return (links.sslContext as Link[]).filter((l) => l.name === linkName)[0]?.href;
 };
 
 export const formatAsTimestamp = (date: Date) => {

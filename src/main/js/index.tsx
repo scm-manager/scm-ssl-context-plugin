@@ -14,10 +14,9 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
+import React from "react";
 import { binder } from "@scm-manager/ui-extensions";
 import { Links } from "@scm-manager/ui-types";
-import React, { FC } from "react";
-import { Route } from "react-router-dom";
 import SSLContextNavigation from "./SSLContextNavigation";
 import SSLContextOverview from "./SSLContextOverview";
 
@@ -29,14 +28,10 @@ export const predicate = ({ links }: PredicateProps) => {
   return !!(links && links.sslContext);
 };
 
-const SSLContextRoute: FC<{ links: Links }> = ({ links }) => {
-  return (
-    <Route path="/admin/ssl-context">
-      <SSLContextOverview links={links} />
-    </Route>
-  );
-};
+const SSLContextRoute = () => ({
+  path: "ssl-context",
+  element: <SSLContextOverview />,
+});
 
-binder.bind("admin.route", SSLContextRoute, predicate);
-
+binder.bind("admin.route", SSLContextRoute);
 binder.bind("admin.navigation", SSLContextNavigation, predicate);

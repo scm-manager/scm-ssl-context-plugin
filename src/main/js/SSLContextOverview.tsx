@@ -15,25 +15,24 @@
  */
 
 import React, { FC, useState } from "react";
-import { Links } from "@scm-manager/ui-types";
 import { useTranslation } from "react-i18next";
 import { Notification, Title, useDocumentTitle } from "@scm-manager/ui-core";
+import { Links } from "@scm-manager/ui-types";
 import SSLContextApprovedOverview from "./approved/SSLContextApprovedOverview";
 import SSLContextRejectedOverview from "./rejected/SSLContextRejectedOverview";
-import useCertificateCollection, { CertificateCollectionResult } from "./useCertificateCollection";
+import { useCertificateCollection, CertificateCollectionResult } from "./hooks";
 import { getLinkByName } from "./certificates";
 import SSLCertificateUpload from "./SSLCertificateUpload";
+import { useIndexLinks } from "@scm-manager/ui-api";
 
-type Props = {
-  links: Links;
-};
-
-const SSLContextOverview: FC<Props> = ({ links }) => {
+const SSLContextOverview: FC = () => {
   const [t] = useTranslation("plugins");
+  const links = useIndexLinks() as Links;
+  useDocumentTitle(t("scm-ssl-context-plugin.title"));
+
   const [successMessage, setSuccessMessage] = useState<string | undefined>("");
   const rejectedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "rejected"));
   const approvedResult: CertificateCollectionResult = useCertificateCollection(getLinkByName(links, "approved"));
-  useDocumentTitle(t("scm-ssl-context-plugin.title"));
 
   const refresh = () => {
     rejectedResult.refresh();

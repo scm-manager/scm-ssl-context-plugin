@@ -14,10 +14,11 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import React, { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Column, comparators, NoStyleButton, Subtitle, Table } from "@scm-manager/ui-components";
+import { Column, comparators, Table } from "@scm-manager/ui-components";
+import { Button, Subtitle } from "@scm-manager/ui-core";
+import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
 type Props = {
@@ -40,7 +41,7 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh, successMessage }) 
     <>
       {selectedCertificate ? (
         <ApprovedCertificateDetailsModal
-          onClose={message => {
+          onClose={(message) => {
             setSelectedCertificate(undefined);
             if (typeof message === "string") {
               successMessage(message);
@@ -59,7 +60,7 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh, successMessage }) 
           ascendingIcon="sort-alpha-down-alt"
           descendingIcon="sort-alpha-down"
         >
-          {row => parseCommonNameFromDN(row.subjectDN)}
+          {(row) => parseCommonNameFromDN(row.subjectDN)}
         </Column>
         <Column
           header={t("scm-ssl-context-plugin.table.column.timestamp.approved")}
@@ -67,20 +68,20 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh, successMessage }) 
           ascendingIcon="sort"
           descendingIcon="sort"
         >
-          {row => formatAsTimestamp(row.timestamp)}
+          {(row) => formatAsTimestamp(row.timestamp)}
         </Column>
         <Column header={t("scm-ssl-context-plugin.table.column.uploaded.label")}>
-          {row =>
+          {(row) =>
             row.uploaded
               ? t("scm-ssl-context-plugin.table.column.uploaded.yes")
               : t("scm-ssl-context-plugin.table.column.uploaded.no")
           }
         </Column>
         <Column className="has-text-right" header="">
-          {row => (
-            <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
+          {(row) => (
+            <Button variant="tertiary" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}
-            </NoStyleButton>
+            </Button>
           )}
         </Column>
       </Table>

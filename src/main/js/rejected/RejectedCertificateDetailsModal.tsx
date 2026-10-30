@@ -14,14 +14,12 @@
  * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
-import React, { FC, useState } from "react";
-import { Button, ErrorNotification, Level } from "@scm-manager/ui-components";
-import { useTranslation } from "react-i18next";
-import { Certificate, formatAsTimestamp } from "../certificates";
+import React, { FC } from "react";
+import { Button, ErrorNotification } from "@scm-manager/ui-core";
 import { Link } from "@scm-manager/ui-types";
+import { useRejectedCertificateModal } from "../hooks";
+import { Certificate, formatAsTimestamp } from "../certificates";
 import { ChainEntry, SizedModal } from "../approved/ApprovedCertificateDetailsModal";
-import { useManageCertificate } from "../useManageCertificate";
-import { useRemoveRejectedCertificate } from "../useRemoveRejectedCertificate";
 
 type Props = {
   active: boolean;
@@ -31,17 +29,15 @@ type Props = {
 };
 
 const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, active, refresh }) => {
-  const [t] = useTranslation("plugins");
-  const chain = [certificate, ...certificate._embedded.chain].reverse();
-  const [selectedCert, setSelectedCert] = useState<Certificate>(certificate);
-  const { loading, error, manage } = useManageCertificate(refresh, () =>
-    onClose(t("scm-ssl-context-plugin.table.approveNotification"))
+  const { t, chain, selectedCert, setSelectedCert, loading, error, manage, remove } = useRejectedCertificateModal(
+    certificate,
+    refresh,
+    onClose,
   );
-  const { loading: loadingRemoved, error: errorRemoved, remove } = useRemoveRejectedCertificate(refresh, onClose);
 
   const body = (
     <>
-      <ErrorNotification error={error || errorRemoved} />
+      <ErrorNotification error={error} />
       <table className="table">
         <tbody>
           <tr>
@@ -98,35 +94,29 @@ const RejectedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
     </>
   );
 
-  let footer = null;
-  if (selectedCert?._links?.approve || selectedCert?._links?.remove) {
-    footer = (
-      <Level
-        right={
-          <>
-            {selectedCert?._links?.approve ? (
-              <Button
-                label={t("scm-ssl-context-plugin.table.approve")}
-                action={() => manage((selectedCert._links.approve as Link).href)}
-                color="info"
-                type="button"
-                loading={loading}
-              />
-            ) : null}
-            {selectedCert?._links?.remove ? (
-              <Button
-                label={t("scm-ssl-context-plugin.table.delete")}
-                action={() => remove((selectedCert._links.remove as Link).href)}
-                color="info"
-                type="button"
-                loading={loadingRemoved}
-              />
-            ) : null}
-          </>
-        }
-      />
-    );
-  }
+  const footer =
+    selectedCert?._links?.approve || selectedCert?._links?.remove ? (
+      <>
+        {selectedCert?._links?.approve && (
+          <Button
+            onClick={() => manage((selectedCert._links.approve as Link).href)}
+            className="is-info"
+            isLoading={loading}
+          >
+            {t("scm-ssl-context-plugin.table.approve")}
+          </Button>
+        )}
+        {selectedCert?._links?.remove && (
+          <Button
+            onClick={() => remove((selectedCert._links.remove as Link).href)}
+            className="is-info"
+            isLoading={loading}
+          >
+            {t("scm-ssl-context-plugin.table.delete")}
+          </Button>
+        )}
+      </>
+    ) : null;
 
   return (
     <SizedModal

@@ -15,27 +15,17 @@
  */
 
 import React, { FC } from "react";
-import { SecondaryNavigationItem } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
+import { SecondaryNavigationItem } from "@scm-manager/ui-components";
 
 const SSLContextNavigation: FC = () => {
   const [t] = useTranslation("plugins");
-  const match = useRouteMatch();
-
-  const matchesSslContext = (route: any) => {
-    const regex = new RegExp("/admin/ssl-context/.+");
-    return !!route.location.pathname.match(regex);
-  };
-
   return (
     <SecondaryNavigationItem
-      to={match.url + "/ssl-context/"}
+      to={"/admin/ssl-context/"}
       icon="fas fa-certificate"
       label={t("scm-ssl-context-plugin.navLink")}
       title={t("scm-ssl-context-plugin.navLink")}
-      activeWhenMatch={matchesSslContext}
-      activeOnlyWhenExact={false}
     />
   );
 };

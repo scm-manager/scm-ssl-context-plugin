@@ -15,15 +15,9 @@
  */
 
 import React, { FC, useState } from "react";
-import {
-  Column,
-  comparators,
-  Subtitle,
-  Table,
-  TextColumn,
-  NoStyleButton
-} from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
+import { Column, comparators, Table, TextColumn } from "@scm-manager/ui-components";
+import { Subtitle, Button } from "@scm-manager/ui-core";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
 
@@ -47,7 +41,7 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh, successMessage }) 
     <>
       {selectedCertificate ? (
         <RejectedCertificateDetailsModal
-          onClose={message => {
+          onClose={(message) => {
             setSelectedCertificate(undefined);
             if (typeof message === "string") {
               successMessage(message);
@@ -66,7 +60,7 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh, successMessage }) 
           ascendingIcon="sort-alpha-down-alt"
           descendingIcon="sort-alpha-down"
         >
-          {row => parseCommonNameFromDN(row.subjectDN)}
+          {(row) => parseCommonNameFromDN(row.subjectDN)}
         </Column>
         <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
         <Column
@@ -75,13 +69,13 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh, successMessage }) 
           ascendingIcon="sort"
           descendingIcon="sort"
         >
-          {row => formatAsTimestamp(row.timestamp)}
+          {(row) => formatAsTimestamp(row.timestamp)}
         </Column>
         <Column className="has-text-right" header="">
-          {row => (
-            <NoStyleButton className="has-text-info" onClick={() => openModal(row)}>
+          {(row) => (
+            <Button variant="tertiary" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}
-            </NoStyleButton>
+            </Button>
           )}
         </Column>
       </Table>

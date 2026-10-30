@@ -15,13 +15,14 @@
  */
 
 import React, { FC, useState } from "react";
-import { Button, ErrorNotification, Level, Modal } from "@scm-manager/ui-components";
 import { useTranslation } from "react-i18next";
-import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
-import styled from "styled-components";
 import classNames from "classnames";
+import styled from "styled-components";
+import { Modal } from "@scm-manager/ui-components";
+import { Button, ErrorNotification, Icon } from "@scm-manager/ui-core";
 import { Link } from "@scm-manager/ui-types";
-import { useManageCertificate } from "../useManageCertificate";
+import { useManageCertificate } from "../hooks";
+import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 
 export const SizedModal = styled(Modal)`
   .modal-card {
@@ -35,7 +36,7 @@ export const SizedModal = styled(Modal)`
 `;
 
 export const StyledTreeElement = styled.li<{ depth: number }>`
-  margin-left: ${props => props.depth}rem;
+  margin-left: ${(props) => props.depth}rem;
   width: fit-content;
 `;
 
@@ -57,7 +58,8 @@ export type ChainEntryProps = {
 
 export const ChainEntry: FC<ChainEntryProps> = ({ certificate, depth, selected, onClick }) => (
   <StyledTreeElement depth={depth * 3} onClick={onClick}>
-    <ChainButton icon="certificate" className={classNames("is-inverted", { "is-link": selected })}>
+    <ChainButton className={classNames("is-inverted", { "is-link": selected })}>
+      <Icon className="mr-1">certificate</Icon>
       {parseCommonNameFromDN(certificate.subjectDN)}
     </ChainButton>
   </StyledTreeElement>
@@ -143,17 +145,9 @@ const ApprovedCertificateDetailsModal: FC<Props> = ({ onClose, certificate, acti
   let footer = null;
   if (selectedCert?._links?.reject) {
     footer = (
-      <Level
-        right={
-          <Button
-            label={t("scm-ssl-context-plugin.table.reject")}
-            action={() => manage((selectedCert._links.reject as Link).href)}
-            color="info"
-            type="button"
-            loading={loading}
-          />
-        }
-      />
+      <Button onClick={() => manage((selectedCert._links.reject as Link).href)} className="is-info" isLoading={loading}>
+        {t("scm-ssl-context-plugin.table.reject")}
+      </Button>
     );
   }
 
