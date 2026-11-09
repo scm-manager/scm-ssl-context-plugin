@@ -16,8 +16,7 @@
 
 import React, { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Column, comparators, Table, TextColumn } from "@scm-manager/ui-components";
-import { Subtitle, Button } from "@scm-manager/ui-core";
+import { Subtitle, Button, comparators, Table } from "@scm-manager/ui-core";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import RejectedCertificateDetailsModal from "./RejectedCertificateDetailsModal";
 
@@ -54,30 +53,30 @@ const SSLContextRejectedTable: FC<Props> = ({ chain, refresh, successMessage }) 
       ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.rejected")} className="mb-3" />
       <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")}>
-        <Column
+        <Table.Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}
           ascendingIcon="sort-alpha-down-alt"
           descendingIcon="sort-alpha-down"
         >
           {(row) => parseCommonNameFromDN(row.subjectDN)}
-        </Column>
-        <TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
-        <Column
+        </Table.Column>
+        <Table.TextColumn header={t("scm-ssl-context-plugin.table.column.certificateError")} dataKey="error" />
+        <Table.Column
           header={t("scm-ssl-context-plugin.table.column.timestamp.rejected")}
           createComparator={() => timestampComparator}
           ascendingIcon="sort"
           descendingIcon="sort"
         >
           {(row) => formatAsTimestamp(row.timestamp)}
-        </Column>
-        <Column className="has-text-right" header="">
+        </Table.Column>
+        <Table.Column className="has-text-right" header="">
           {(row) => (
             <Button variant="tertiary" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}
             </Button>
           )}
-        </Column>
+        </Table.Column>
       </Table>
     </>
   );

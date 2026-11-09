@@ -16,8 +16,7 @@
 
 import React, { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Column, comparators, Table } from "@scm-manager/ui-components";
-import { Button, Subtitle } from "@scm-manager/ui-core";
+import { Button, Subtitle, comparators, Table } from "@scm-manager/ui-core";
 import { Certificate, formatAsTimestamp, parseCommonNameFromDN } from "../certificates";
 import ApprovedCertificateDetailsModal from "./ApprovedCertificateDetailsModal";
 
@@ -54,36 +53,36 @@ const SSLContextApprovedTable: FC<Props> = ({ chain, refresh, successMessage }) 
       ) : null}
       <Subtitle subtitle={t("scm-ssl-context-plugin.table.title.approved")} className="mb-3" />
       <Table data={initialSorted} emptyMessage={t("scm-ssl-context-plugin.table.emptyMessage")} className="mt-4">
-        <Column
+        <Table.Column
           header={t("scm-ssl-context-plugin.table.column.commonName")}
           createComparator={() => comparators.byKey("subjectDN")}
           ascendingIcon="sort-alpha-down-alt"
           descendingIcon="sort-alpha-down"
         >
           {(row) => parseCommonNameFromDN(row.subjectDN)}
-        </Column>
-        <Column
+        </Table.Column>
+        <Table.Column
           header={t("scm-ssl-context-plugin.table.column.timestamp.approved")}
           createComparator={() => timestampComparator}
           ascendingIcon="sort"
           descendingIcon="sort"
         >
           {(row) => formatAsTimestamp(row.timestamp)}
-        </Column>
-        <Column header={t("scm-ssl-context-plugin.table.column.uploaded.label")}>
+        </Table.Column>
+        <Table.Column header={t("scm-ssl-context-plugin.table.column.uploaded.label")}>
           {(row) =>
             row.uploaded
               ? t("scm-ssl-context-plugin.table.column.uploaded.yes")
               : t("scm-ssl-context-plugin.table.column.uploaded.no")
           }
-        </Column>
-        <Column className="has-text-right" header="">
+        </Table.Column>
+        <Table.Column className="has-text-right" header="">
           {(row) => (
             <Button variant="tertiary" onClick={() => openModal(row)}>
               {t("scm-ssl-context-plugin.table.details")}
             </Button>
           )}
-        </Column>
+        </Table.Column>
       </Table>
     </>
   );
