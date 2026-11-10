@@ -45,13 +45,12 @@ const SSLCertificateUpload: FC<Props> = ({ link, refresh }) => {
   const submit = () => {
     const options: RequestInit = {
       method: "POST",
-      headers: { "Content-Type": "application/octet-stream" },
-      body: file
+      body: file,
     };
     setError(undefined);
     setSubmitNotification(false);
     apiClient
-      .httpRequestWithBinaryBody(options, link)
+      .httpRequestWithBinaryBody(options, link, "application/octet-stream")
       .then(refresh)
       .then(() => {
         setSubmitNotification(true);

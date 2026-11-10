@@ -1,0 +1,2 @@
+- type: fixed
+  description: Certificate files with extensions like `.pem` or `.crt` uploaded with an invalid content type header
